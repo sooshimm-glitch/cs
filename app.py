@@ -33,8 +33,19 @@ header { visibility: visible !important; }
 /* ── 전체 배경 ── */
 .stApp { background: #f5f5f7; }
 .block-container {
-    padding: 0 !important;
+    padding-top: 1.5rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    padding-bottom: 2rem !important;
     max-width: 100% !important;
+}
+
+/* 메인 영역이 사이드바에 가리지 않도록 */
+section[data-testid="stMain"] {
+    overflow-x: hidden;
+}
+section[data-testid="stMain"] .block-container {
+    padding-top: 1.5rem !important;
 }
 
 /* Force sidebar toggle */
@@ -98,10 +109,9 @@ header { visibility: visible !important; }
 .chat-wrap {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 60px);
-    max-width: 780px;
+    max-width: 860px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 0;
 }
 
 /* 상단 헤더 */
@@ -556,10 +566,9 @@ def call_openai(api_key: str, question: str, guideline: str, gen_count: int, mod
         user_msg = question
     messages.append({"role": "user", "content": user_msg})
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4o-search-preview",
         messages=messages,
         max_tokens=2000,
-        temperature=0.7,
     )
     return response.choices[0].message.content
 
