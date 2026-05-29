@@ -34,11 +34,14 @@ header { visibility: visible !important; }
 
 .stApp { background: #0f0f0f; }
 .block-container {
-    padding: 1.5rem 2rem 2rem !important;
+    padding-top: 3.5rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    padding-bottom: 2rem !important;
     max-width: 100% !important;
 }
 section[data-testid="stMain"] { overflow-x: hidden; }
-section[data-testid="stMain"] .block-container { padding-top: 1.2rem !important; }
+section[data-testid="stMain"] .block-container { padding-top: 3.5rem !important; }
 
 /* ── 사이드바 ── */
 [data-testid="stSidebar"] {
