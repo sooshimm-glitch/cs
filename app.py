@@ -22,391 +22,297 @@ st.set_page_config(
 # ─── Custom CSS ────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-html, body, [class*="css"] {
-    font-family: 'Noto Sans KR', sans-serif;
-}
+*, *::before, *::after { box-sizing: border-box; }
+html, body, [class*="css"] { font-family: 'Noto Sans KR', 'Inter', sans-serif; }
 
 #MainMenu, footer { visibility: hidden; }
 header { visibility: visible !important; }
+[data-testid="collapsedControl"] { display: flex !important; visibility: visible !important; opacity: 1 !important; }
 
-/* ── 전체 배경 ── */
-.stApp { background: #f5f5f7; }
+.stApp { background: #0f0f0f; }
 .block-container {
-    padding-top: 1.5rem !important;
-    padding-left: 2rem !important;
-    padding-right: 2rem !important;
-    padding-bottom: 2rem !important;
+    padding: 1.5rem 2rem 2rem !important;
     max-width: 100% !important;
 }
+section[data-testid="stMain"] { overflow-x: hidden; }
+section[data-testid="stMain"] .block-container { padding-top: 1.2rem !important; }
 
-/* 메인 영역이 사이드바에 가리지 않도록 */
-section[data-testid="stMain"] {
-    overflow-x: hidden;
-}
-section[data-testid="stMain"] .block-container {
-    padding-top: 1.5rem !important;
-}
-
-/* Force sidebar toggle */
-[data-testid="collapsedControl"] {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-/* ── Sidebar ── */
+/* ── 사이드바 ── */
 [data-testid="stSidebar"] {
-    background: #1a1a2e !important;
-    min-width: 270px !important;
-    max-width: 300px !important;
+    background: #141414 !important;
+    border-right: 1px solid #2a2a2a !important;
+    min-width: 268px !important;
+    max-width: 268px !important;
 }
 [data-testid="stSidebar"] > div:first-child {
-    min-width: 270px !important;
-    padding: 1.2rem 1rem !important;
+    padding: 1.4rem 1.1rem !important;
+    min-width: 268px !important;
 }
-[data-testid="stSidebar"] * {
-    color: #e8e6df !important;
-    word-break: keep-all !important;
-    overflow-wrap: break-word !important;
-}
+[data-testid="stSidebar"] * { color: #c9c9c9 !important; word-break: keep-all !important; }
+[data-testid="stSidebar"] h3 { color: #f0f0f0 !important; font-size: 15px !important; font-weight: 600 !important; }
+[data-testid="stSidebar"] hr { border-color: #2a2a2a !important; margin: 12px 0 !important; }
+[data-testid="stSidebar"] label { font-size: 11px !important; color: #666 !important; font-weight: 500 !important; text-transform: uppercase; letter-spacing: 0.7px; }
 [data-testid="stSidebar"] .stTextInput input {
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
-    color: #e8e6df !important;
+    background: #1e1e1e !important;
+    border: 1px solid #333 !important;
+    color: #e0e0e0 !important;
+    border-radius: 8px !important;
     font-size: 12px !important;
-    border-radius: 8px !important;
 }
+[data-testid="stSidebar"] .stTextInput input:focus { border-color: #4f8ef7 !important; }
 [data-testid="stSidebar"] .stFileUploader {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1.5px dashed rgba(255,255,255,0.15) !important;
+    background: #1a1a1a !important;
+    border: 1px dashed #333 !important;
     border-radius: 8px !important;
 }
-[data-testid="stSidebar"] label {
-    font-size: 11px !important;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    font-weight: 600 !important;
-    color: #8a8899 !important;
-}
-[data-testid="stSidebar"] .stMarkdown h3 {
-    color: #ffffff !important;
-    font-size: 16px !important;
-}
-.hist-item {
-    background: rgba(255,255,255,0.05);
-    border-radius: 6px;
-    padding: 7px 10px;
-    margin-bottom: 4px;
-    font-size: 11px;
-    color: #a8a6b8;
-    border: 1px solid transparent;
-    word-break: keep-all;
-}
-.hist-item:hover { background: rgba(79,142,247,0.1); border-color: rgba(79,142,247,0.2); }
-
-/* ── 채팅 레이아웃 ── */
-.chat-wrap {
-    display: flex;
-    flex-direction: column;
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 0;
+[data-testid="stSidebar"] .stExpander {
+    background: #1a1a1a !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 8px !important;
+    margin-bottom: 4px !important;
 }
 
-/* 상단 헤더 */
-.chat-header {
-    padding: 18px 0 10px;
-    border-bottom: 1px solid #e2e1dc;
+/* ── 메인 배경 ── */
+.stApp > div { background: #0f0f0f; }
+
+/* ── 헤더 ── */
+.adcs-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
+    gap: 12px;
+    padding: 0 0 16px;
+    border-bottom: 1px solid #222;
+    margin-bottom: 20px;
 }
-.chat-header-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: #1a1917;
+.adcs-logo {
+    width: 36px; height: 36px;
+    background: #1a1ffe;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
 }
-.chat-badge {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 9px;
-    border-radius: 20px;
-    background: #dbeafe;
-    color: #2563eb;
+.adcs-title { font-size: 16px; font-weight: 600; color: #f0f0f0; }
+.adcs-sub   { font-size: 11px; color: #555; margin-top: 1px; }
+.adcs-beta  {
+    margin-left: auto;
+    font-size: 10px; font-weight: 600;
+    padding: 3px 8px; border-radius: 6px;
+    background: rgba(79,142,247,0.15);
+    color: #4f8ef7;
+    border: 1px solid rgba(79,142,247,0.25);
     letter-spacing: 0.5px;
-    text-transform: uppercase;
 }
 
-/* 모드 탭 */
-.mode-tab-wrap {
-    display: flex;
-    gap: 0;
-    background: #ebebeb;
+/* ── 모드 선택 ── */
+.stRadio > div { gap: 0 !important; }
+.stRadio [data-testid="stWidgetLabel"] { display: none !important; }
+div[data-testid="stHorizontalBlock"]:has(.stRadio) { background: #1a1a1a; border-radius: 10px; padding: 4px; }
+
+/* ── 모드 인포 카드 ── */
+.mode-card {
     border-radius: 10px;
-    padding: 3px;
-    margin: 12px 0 0;
-    flex-shrink: 0;
-}
-.mode-tab {
-    flex: 1;
-    text-align: center;
-    padding: 7px 12px;
-    border-radius: 8px;
+    padding: 11px 14px;
+    margin: 10px 0 16px;
     font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    color: #8a8680;
-    border: none;
-    background: transparent;
-    transition: all 0.2s;
-}
-.mode-tab.active {
-    background: #fff;
-    color: #1a1917;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-
-/* 채팅 메시지 영역 */
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px 0 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* 환영 화면 */
-.welcome-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    gap: 8px;
-    padding: 40px 0 20px;
-}
-.welcome-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a1917;
-    text-align: center;
-}
-.welcome-sub {
-    font-size: 13px;
-    color: #8a8680;
-    text-align: center;
-    margin-bottom: 16px;
-}
-
-/* 예시 질문 카드 */
-.example-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    width: 100%;
-    margin-top: 8px;
-}
-.example-card {
-    background: #fff;
-    border: 1px solid #e5e3dc;
-    border-radius: 10px;
-    padding: 12px 14px;
-    font-size: 12px;
-    color: #4a4845;
-    cursor: pointer;
-    transition: all 0.18s;
-    line-height: 1.5;
-}
-.example-card:hover { border-color: #2563eb; background: #f0f7ff; }
-.example-card-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: #8a8680;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 3px;
-}
-
-/* 사용자 말풍선 */
-.msg-user {
-    display: flex;
-    justify-content: flex-end;
-}
-.msg-user-bubble {
-    background: #2563eb;
-    color: #fff;
-    border-radius: 18px 18px 4px 18px;
-    padding: 12px 16px;
-    max-width: 72%;
-    font-size: 14px;
-    line-height: 1.6;
-    word-break: keep-all;
-}
-
-/* AI 답변 */
-.msg-ai {
+    line-height: 1.65;
     display: flex;
     gap: 10px;
     align-items: flex-start;
 }
-.msg-ai-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #2563eb, #7c3aed);
+.mode-card-basic   { background: #1a1a1a; border: 1px solid #2a2a2a; color: #aaa; }
+.mode-card-precise { background: #0d1a2e; border: 1px solid #1e3a5f; color: #7db3f0; }
+.mode-card-title   { font-weight: 600; font-size: 13px; color: #e0e0e0; margin-bottom: 2px; }
+.mode-tag {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    padding: 1px 7px; border-radius: 20px; margin-left: 7px; vertical-align: middle;
+}
+.tag-basic   { background: rgba(80,80,80,0.3); color: #888; border: 1px solid #333; }
+.tag-precise { background: rgba(79,142,247,0.15); color: #4f8ef7; border: 1px solid rgba(79,142,247,0.25); }
+
+/* ── 채팅 메시지 ── */
+.msg-user {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    margin: 0 0 20px;
+}
+.msg-user-bubble {
+    background: #1a1ffe;
+    color: #fff;
+    border-radius: 18px 18px 4px 18px;
+    padding: 11px 16px;
+    max-width: 70%;
     font-size: 14px;
-    flex-shrink: 0;
-    margin-top: 2px;
+    line-height: 1.65;
+    word-break: keep-all;
+    font-weight: 400;
 }
-.msg-ai-body {
-    flex: 1;
-    min-width: 0;
+
+.msg-ai-wrap {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin: 0 0 24px;
 }
+.msg-ai-avatar {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: #1a1ffe;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: #fff;
+    flex-shrink: 0; margin-top: 2px;
+}
+.msg-ai-body { flex: 1; min-width: 0; }
 .msg-ai-meta {
-    font-size: 10px;
-    color: #8a8680;
-    margin-bottom: 6px;
+    font-size: 11px; color: #555;
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
 }
-.msg-ai-bubble {
-    background: #fff;
-    border: 1px solid #e5e3dc;
-    border-radius: 4px 18px 18px 18px;
+.msg-ai-mode-badge {
+    font-size: 10px; font-weight: 600;
+    padding: 1px 7px; border-radius: 5px;
+    background: #1a1a1a; border: 1px solid #2a2a2a; color: #666;
+}
+.msg-ai-content {
+    background: #161616;
+    border: 1px solid #252525;
+    border-radius: 4px 14px 14px 14px;
     padding: 16px 20px;
-    font-size: 14px;
-    line-height: 1.8;
-    color: #1a1917;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    font-size: 14px; line-height: 1.85;
+    color: #d0d0d0;
     word-break: keep-all;
 }
-.msg-ai-sources {
+.msg-ai-content h1, .msg-ai-content h2, .msg-ai-content h3 { color: #f0f0f0 !important; }
+.msg-ai-content strong { color: #e8e8e8 !important; }
+.msg-ai-content blockquote {
+    border-left: 3px solid #333; margin: 0 0 12px;
+    padding: 6px 14px; color: #888; font-size: 13px;
+}
+
+/* 출처 박스 */
+.sources-wrap {
     margin-top: 10px;
-    background: #f9f8f5;
-    border: 1px solid #e5e3dc;
+    background: #111;
+    border: 1px solid #222;
     border-radius: 8px;
     padding: 10px 14px;
-    font-size: 11px;
 }
-.msg-ai-sources-title {
-    font-size: 10px;
-    font-weight: 700;
-    color: #8a8680;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
+.sources-label {
+    font-size: 10px; font-weight: 600; color: #555;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 7px;
 }
+.source-item {
+    font-size: 12px; padding: 4px 0;
+    border-bottom: 1px solid #1e1e1e;
+    word-break: break-all;
+}
+.source-item:last-child { border-bottom: none; }
+.source-item a { color: #4f8ef7 !important; text-decoration: none; }
+.source-item a:hover { text-decoration: underline; }
 
-/* 매체 감지 칩 */
-.chip-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 10px; }
+/* ── 매체 감지 칩 ── */
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 10px; align-items: center; }
+.chip-label { font-size: 11px; color: #555; }
 .chip {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.3px;
-    display: inline-block;
+    font-size: 11px; font-weight: 600;
+    padding: 2px 10px; border-radius: 20px;
+    display: inline-block; letter-spacing: 0.2px;
 }
-.chip-naver  { background: rgba(3,199,90,0.12); color: #039950; }
-.chip-kakao  { background: rgba(249,224,0,0.20); color: #9a7c00; }
-.chip-daangn { background: rgba(255,111,15,0.12); color: #c25000; }
-.chip-google { background: rgba(66,133,244,0.12); color: #1a56cc; }
-.chip-meta   { background: rgba(24,119,242,0.12); color: #1877f2; }
+.chip-naver  { background: rgba(3,199,90,0.1);  color: #03c75a; border: 1px solid rgba(3,199,90,0.2); }
+.chip-kakao  { background: rgba(250,225,0,0.1); color: #c8aa00; border: 1px solid rgba(250,225,0,0.2); }
+.chip-daangn { background: rgba(255,111,15,0.1);color: #ff6f0f; border: 1px solid rgba(255,111,15,0.2); }
+.chip-google { background: rgba(66,133,244,0.1);color: #4285f4; border: 1px solid rgba(66,133,244,0.2); }
+.chip-meta   { background: rgba(24,119,242,0.1);color: #1877f2; border: 1px solid rgba(24,119,242,0.2); }
 
-/* ── 입력창 하단 고정 ── */
-.input-area {
-    flex-shrink: 0;
-    padding: 12px 0 20px;
-    border-top: 1px solid #e2e1dc;
-    background: #f5f5f7;
+/* ── 웰컴 화면 ── */
+.welcome-section {
+    text-align: center;
+    padding: 40px 0 24px;
 }
-.input-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #8a8680;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
+.welcome-title { font-size: 26px; font-weight: 600; color: #f0f0f0; margin-bottom: 8px; }
+.welcome-sub   { font-size: 14px; color: #555; margin-bottom: 28px; }
+
+/* ── 입력창 ── */
+.input-label-text {
+    font-size: 11px; font-weight: 600; color: #555;
+    text-transform: uppercase; letter-spacing: 0.8px;
     margin-bottom: 8px;
 }
-
-/* 입력창 스타일 */
 .stTextArea textarea {
-    border-radius: 16px !important;
-    border: 1.5px solid #e2e1dc !important;
-    background: #fff !important;
+    background: #161616 !important;
+    border: 1px solid #2a2a2a !important;
+    border-radius: 14px !important;
+    color: #e0e0e0 !important;
     font-family: 'Noto Sans KR', sans-serif !important;
     font-size: 14px !important;
     padding: 14px 18px !important;
     resize: none !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
     transition: border-color 0.2s !important;
 }
 .stTextArea textarea:focus {
-    border-color: #2563eb !important;
-    box-shadow: 0 2px 16px rgba(37,99,235,0.12) !important;
+    border-color: #1a1ffe !important;
+    box-shadow: 0 0 0 3px rgba(26,31,254,0.12) !important;
 }
+.stTextArea textarea::placeholder { color: #444 !important; }
 
-/* 버튼 */
+/* ── 버튼 ── */
 div[data-testid="stButton"] > button {
     border-radius: 10px !important;
     font-family: 'Noto Sans KR', sans-serif !important;
     font-weight: 600 !important;
     font-size: 13px !important;
-    transition: all 0.18s !important;
     height: 42px !important;
+    transition: all 0.15s !important;
+    letter-spacing: 0.2px !important;
 }
 div[data-testid="stButton"] > button[kind="primary"] {
-    background: #2563eb !important;
-    color: white !important;
-    box-shadow: 0 2px 8px rgba(37,99,235,0.25) !important;
+    background: #1a1ffe !important;
+    color: #fff !important;
     border: none !important;
 }
 div[data-testid="stButton"] > button[kind="primary"]:hover {
-    background: #1d4ed8 !important;
-    box-shadow: 0 4px 14px rgba(37,99,235,0.35) !important;
+    background: #0f13e8 !important;
+    transform: translateY(-1px) !important;
 }
 div[data-testid="stButton"] > button[kind="secondary"] {
-    border: 1.5px solid #e2e1dc !important;
-    color: #4a4845 !important;
-    background: #fff !important;
+    background: #161616 !important;
+    border: 1px solid #2a2a2a !important;
+    color: #aaa !important;
 }
 div[data-testid="stButton"] > button[kind="secondary"]:hover {
-    border-color: #2563eb !important;
-    color: #2563eb !important;
-    background: #f0f7ff !important;
+    border-color: #4f8ef7 !important;
+    color: #4f8ef7 !important;
+    background: #0d1a2e !important;
 }
 
-/* mode info */
-.mode-info {
-    border-radius: 10px;
-    padding: 10px 14px;
-    margin-bottom: 10px;
-    font-size: 12px;
-    line-height: 1.6;
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
+/* 예시 버튼 */
+div[data-testid="stButton"] > button:not([kind]) {
+    background: #161616 !important;
+    border: 1px solid #252525 !important;
+    color: #999 !important;
+    text-align: left !important;
+    height: auto !important;
+    padding: 10px 14px !important;
+    line-height: 1.5 !important;
+    white-space: normal !important;
 }
-.mode-info-normal  { background: #f9f8f5; border: 1px solid #e5e3dc; color: #4a4845; }
-.mode-info-precise { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
-.mode-tag {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 1px 7px;
-    border-radius: 20px;
-    margin-left: 6px;
-    vertical-align: middle;
+div[data-testid="stButton"] > button:not([kind]):hover {
+    border-color: #4f8ef7 !important;
+    color: #c0c0c0 !important;
+    background: #0d1520 !important;
 }
-.tag-free { background: #d1fae5; color: #065f46; }
-.tag-paid { background: #dbeafe; color: #1e40af; }
 
 div[data-testid="stAlert"] { border-radius: 10px !important; }
+
+/* 사이드바 히스토리 아이템 */
+.hist-item {
+    background: #1a1a1a; border: 1px solid #252525;
+    border-radius: 6px; padding: 7px 10px;
+    margin-bottom: 4px; font-size: 11px; color: #888;
+    word-break: keep-all;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -806,15 +712,16 @@ with st.sidebar:
 
 # 헤더
 st.markdown(
-    "<div class='chat-header'>"
-    "<span style='font-size:20px;'>📋</span>"
-    "<span class='chat-header-title'>CS 매체 대응 자동화</span>"
-    "<span class='chat-badge'>BETA</span>"
+    "<div class='adcs-header'>"
+    "<div class='adcs-logo'>A</div>"
+    "<div><div class='adcs-title'>AdCS Pro</div>"
+    "<div class='adcs-sub'>대대행 매체 CS 자동화</div></div>"
+    "<span class='adcs-beta'>BETA</span>"
     "</div>",
     unsafe_allow_html=True,
 )
 
-# 모드 선택 라디오
+# 모드 선택
 selected_mode = st.radio(
     "모드",
     options=["기본 모드", "정밀 분석 모드"],
@@ -828,29 +735,25 @@ if selected_mode != st.session_state.analysis_mode:
     st.session_state.conversation = []
     st.rerun()
 
-# 모드 설명
+# 모드 설명 카드
 if selected_mode == "기본 모드":
     st.markdown(
-        "<div class='mode-info mode-info-normal'>"
-        "<span style='font-size:16px;'>🌐</span>"
-        "<div><span style='font-weight:700;font-size:12px;'>기본 모드</span>"
-        "<span class='mode-tag tag-free'>GPT-4o</span><br>"
-        "최신 매체 공식 정책 기반 팩트 중심 답변 · 출처 포함</div></div>",
+        "<div class='mode-card mode-card-basic'>"
+        "<span style='font-size:15px;flex-shrink:0;'>🌐</span>"
+        "<div><div class='mode-card-title'>기본 모드<span class='mode-tag tag-basic'>GPT-4o + 실시간 검색</span></div>"
+        "Tavily 실시간 검색으로 공식 매체 페이지를 직접 찾아 팩트 기반 답변 제공</div></div>",
         unsafe_allow_html=True,
     )
 else:
     st.markdown(
-        "<div class='mode-info mode-info-precise'>"
-        "<span style='font-size:16px;'>🔬</span>"
-        "<div><span style='font-weight:700;font-size:12px;'>정밀 분석 모드</span>"
-        "<span class='mode-tag tag-paid'>가이드라인 우선</span><br>"
-        "사내 가이드라인 최우선 적용 + 최신 매체 정책 보완 · <b>좌측에서 파일 업로드</b></div></div>",
+        "<div class='mode-card mode-card-precise'>"
+        "<span style='font-size:15px;flex-shrink:0;'>🔬</span>"
+        "<div><div class='mode-card-title'>정밀 분석 모드<span class='mode-tag tag-precise'>가이드라인 우선</span></div>"
+        "사내 가이드라인 최우선 적용 + 실시간 검색 보완 — <b>좌측에서 파일 업로드</b></div></div>",
         unsafe_allow_html=True,
     )
 
-st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
-
-# ── 채팅 메시지 출력 ───────────────────────────────────────────
+# ── 예시 질문 / 채팅 메시지 ──────────────────────────────────────
 EXAMPLES = [
     ("🟢 네이버", "네이버 GFA 영상광고 사이즈 정책이 최근 변경됐나요? 현재 지원 포맷과 해상도, 파일 용량 제한을 상세히 알려주세요."),
     ("🟠 당근", "당근마켓 지역 타겟팅 광고에서 반경 설정 최솟값이 어떻게 되나요? 최근 정책 변경 내용도 포함해 주세요."),
@@ -859,24 +762,23 @@ EXAMPLES = [
 ]
 
 if not st.session_state.chat_messages:
-    # 환영 화면
     st.markdown(
-        "<div style='text-align:center;padding:32px 0 8px;'>"
-        "<div style='font-size:24px;font-weight:700;color:#1a1917;margin-bottom:6px;'>무엇을 도와드릴까요?</div>"
-        "<div style='font-size:13px;color:#8a8680;'>매체 정책, 광고 운영 기준, 대대행사 질문에 답변합니다</div>"
+        "<div class='welcome-section'>"
+        "<div class='welcome-title'>무엇을 도와드릴까요?</div>"
+        "<div class='welcome-sub'>매체 정책 · 광고 운영 기준 · 대대행사 질문에 실시간으로 답변합니다</div>"
         "</div>",
         unsafe_allow_html=True,
     )
     ecols = st.columns(2)
     for i, (label, text) in enumerate(EXAMPLES):
         with ecols[i % 2]:
-            if st.button(f"{label}\n{text[:50]}…", key=f"ex_{i}", use_container_width=True):
+            if st.button(f"{label}  {text[:46]}…", key=f"ex_{i}", use_container_width=True):
                 st.session_state["_prefill"] = text
                 st.rerun()
-    st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:20px;'></div>", unsafe_allow_html=True)
 
 else:
-    # 대화 출력
+    st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
     for msg in st.session_state.chat_messages:
         if msg["role"] == "user":
             st.markdown(
@@ -886,38 +788,45 @@ else:
                 unsafe_allow_html=True,
             )
         else:
-            mode_icon = "🔬" if msg.get("mode") == "정밀 분석 모드" else "🌐"
-            time_str = msg.get("time", "")
+            mode_label = msg.get("mode", "기본 모드")
+            mode_icon  = "🔬" if mode_label == "정밀 분석 모드" else "🌐"
+            time_str   = msg.get("time", "")
             st.markdown(
-                f"<div class='msg-ai'>"
-                f"<div class='msg-ai-avatar'>🎯</div>"
+                f"<div class='msg-ai-wrap'>"
+                f"<div class='msg-ai-avatar'>A</div>"
                 f"<div class='msg-ai-body'>"
-                f"<div class='msg-ai-meta'>AdCS Pro · {mode_icon} {msg.get('mode','기본 모드')} · {time_str}</div>",
+                f"<div class='msg-ai-meta'>"
+                f"AdCS Pro &nbsp;·&nbsp; <span class='msg-ai-mode-badge'>{mode_icon} {mode_label}</span>"
+                f"&nbsp;·&nbsp; {time_str}</div>",
                 unsafe_allow_html=True,
             )
-            with st.container():
-                st.markdown(msg["content"])
+            st.markdown(
+                "<div class='msg-ai-content'>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(msg["content"])
+            st.markdown("</div>", unsafe_allow_html=True)
+
             if msg.get("sources"):
-                src_html = "<div class='msg-ai-sources'><div class='msg-ai-sources-title'>🔗 참고 출처</div>"
+                src_html = "<div class='sources-wrap'><div class='sources-label'>🔗 참고 출처</div>"
                 for i, src in enumerate(msg["sources"], 1):
                     url_match = re.search(r"(https?://[^\s]+)", src)
                     if url_match:
-                        url = url_match.group(1)
-                        label = src.replace(url, "").strip().lstrip("-•*0123456789. ") or url
-                        src_html += f"<div style='margin-bottom:3px;font-size:11px;'><b>{i}.</b> <a href='{url}' target='_blank' style='color:#2563eb;'>{label}</a></div>"
+                        url   = url_match.group(1)
+                        label = src.replace(url, "").strip().lstrip("-•· —*0123456789. ") or url
+                        src_html += f"<div class='source-item'><b>{i}.</b> <a href='{url}' target='_blank'>{label}</a></div>"
                     else:
-                        src_html += f"<div style='margin-bottom:3px;font-size:11px;'><b>{i}.</b> {src}</div>"
+                        src_html += f"<div class='source-item'><b>{i}.</b> {src}</div>"
                 src_html += "</div>"
                 st.markdown(src_html, unsafe_allow_html=True)
+
             st.markdown("</div></div>", unsafe_allow_html=True)
-            st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
 
 # ── 입력창 ─────────────────────────────────────────────────────
-st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
 st.markdown(
-    "<p style='font-size:11px;font-weight:600;color:#8a8680;"
-    "text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;'>"
-    "💬 대대행사 질문을 입력하세요</p>",
+    "<div class='input-label-text'>💬 대대행사 질문을 입력하세요</div>",
     unsafe_allow_html=True,
 )
 
@@ -936,9 +845,9 @@ question = st.text_area(
 if question:
     media = detect_media(question)
     if media:
-        chips_html = "<div class='chip-wrap'><span style='font-size:11px;color:#8a8680;margin-right:4px;'>감지:</span>"
-        for cls, label in media:
-            chips_html += f"<span class='chip {cls}'>{label}</span>"
+        chips_html = "<div class='chip-row'><span class='chip-label'>감지:</span>"
+        for cls, lbl in media:
+            chips_html += f"<span class='chip {cls}'>{lbl}</span>"
         chips_html += "</div>"
         st.markdown(chips_html, unsafe_allow_html=True)
 
