@@ -565,8 +565,8 @@ MEDIA_DOMAINS = {
     "틱톡":  ["ads.tiktok.com", "tiktok.com"],
 }
 
-def tavily_search(query: str, tavily_key: str, domains: list) -> str:
-    """Tavily API로 실시간 검색 후 결과 텍스트 반환"""
+def tavily_search(query: str, tavily_key: str, domains: list) -> tuple:
+    """Tavily 검색 → (컨텍스트 텍스트, 실제 URL 목록) 반환"""
     try:
         payload = {
             "api_key": tavily_key,
@@ -587,6 +587,8 @@ def tavily_search(query: str, tavily_key: str, domains: list) -> str:
         data = resp.json()
 
         parts = []
+        sources = []  # {title, url} 실제 URL만 저장
+
         if data.get("answer"):
             parts.append(f"[검색 요약]\n{data['answer']}\n")
 
@@ -594,17 +596,22 @@ def tavily_search(query: str, tavily_key: str, domains: list) -> str:
             title   = r.get("title", "")
             url     = r.get("url", "")
             content = r.get("content", "")
-            parts.append(f"[출처: {title}]\nURL: {url}\n{content}\n")
+            if url:
+                sources.append({"title": title, "url": url})
+            parts.append(f"[참고 문서: {title}]\n{content}\n")
 
-        return "\n---\n".join(parts) if parts else ""
+        return "\n---\n".join(parts), sources
     except Exception as e:
-        return f"[검색 오류: {e}]"
+        return f"[검색 오류: {e}]", []
 
 
-def call_openai(api_key: str, tavily_key: str, question: str, guideline: str, gen_count: int, mode: str) -> str:
+def call_openai(api_key: str, tavily_key: str, question: str, guideline: str, gen_count: int, mode: str) -> tuple:
+    """(답변 텍스트, 출처 목록) 반환 — 출처는 Tavily 실제 URL만 사용"""
     client = OpenAI(api_key=api_key)
 
-    # ── Tavily 검색 (기본 모드 항상, 정밀 모드도 보완 검색) ──
+    tavily_sources = []  # 실제 검색된 URL 목록
+
+    # ── Tavily 실시간 검색 ──────────────────────────────────────
     search_context = ""
     if tavily_key:
         media_found = detect_media(question)
@@ -615,21 +622,29 @@ def call_openai(api_key: str, tavily_key: str, question: str, guideline: str, ge
                     domains.extend(dmns)
         domains = list(set(domains))
 
-        search_query = f"{question} 광고 정책 공식 가이드 2024 2025"
-        search_context = tavily_search(search_query, tavily_key, domains)
+        search_query = f"{question} 광고 정책 공식 가이드 2025"
+        search_context, tavily_sources = tavily_search(search_query, tavily_key, domains)
 
-    # ── 시스템 프롬프트 ──
+    # ── 시스템 프롬프트 ─────────────────────────────────────────
     system_prompt = build_system_prompt(question, guideline, gen_count, mode)
 
-    # 검색 결과 주입
     if search_context:
         system_prompt += f"""
 
-# 실시간 검색 결과 (최신 매체 공식 정보)
-아래는 방금 검색한 공식 매체 페이지의 실제 내용입니다.
-반드시 이 내용을 우선 참고하여 답변하고, 출처 URL을 📌 참고 출처 섹션에 포함하세요.
+# 실시간 검색 결과
+아래는 방금 검색한 공식 매체 페이지의 실제 내용입니다. 이 내용을 우선 참고하여 답변하세요.
+⚠️ 출처 URL은 절대 직접 쓰지 마세요. 출처는 시스템이 자동으로 붙입니다.
 
 {search_context}
+"""
+
+    # ── 출처 섹션 생성 금지 지시 추가 ──────────────────────────
+    system_prompt += """
+
+# 출력 형식 추가 지시
+- 답변 본문만 작성하세요.
+- '📌 참고 출처', '출처:', 'URL:' 등 출처 섹션을 절대 포함하지 마세요.
+- URL을 직접 작성하지 마세요. 출처는 시스템이 자동으로 처리합니다.
 """
 
     messages = [{"role": "system", "content": system_prompt}]
@@ -650,7 +665,16 @@ def call_openai(api_key: str, tavily_key: str, question: str, guideline: str, ge
         max_tokens=2000,
         temperature=0.3,
     )
-    return response.choices[0].message.content
+    answer_text = response.choices[0].message.content
+
+    # GPT가 혹시 출처를 썼으면 제거
+    answer_text = re.sub(r"📌\s*참고 출처.*$", "", answer_text, flags=re.DOTALL).strip()
+    answer_text = re.sub(r"\n+(출처|Source|URL)\s*:.*$", "", answer_text, flags=re.DOTALL | re.IGNORECASE).strip()
+
+    # 출처: Tavily 실제 URL만 사용
+    sources = [f"{s['title']} — {s['url']}" for s in tavily_sources if s.get("url")]
+
+    return answer_text, sources
 
 
 # ══════════════════════════════════════════════════════════════
@@ -962,7 +986,7 @@ def run_generation(q: str, is_regen: bool):
             st.write(step)
         guideline = st.session_state.guideline_text if mode == "정밀 분석 모드" else ""
         try:
-            raw = call_openai(
+            main_text, sources = call_openai(
                 api_key=api_key,
                 tavily_key=tavily_key,
                 question=q,
@@ -983,7 +1007,6 @@ def run_generation(q: str, is_regen: bool):
         st.write(steps[-1])
         status.update(label="답변 생성 완료 ✓", state="complete")
 
-    main_text, sources = parse_sources(raw)
     now_str = datetime.now().strftime("%H:%M")
 
     if not is_regen:
@@ -997,7 +1020,7 @@ def run_generation(q: str, is_regen: bool):
     })
 
     st.session_state.conversation.append({"role": "user", "content": q if not is_regen else f"재생성 요청 {st.session_state.gen_count}회차"})
-    st.session_state.conversation.append({"role": "assistant", "content": raw})
+    st.session_state.conversation.append({"role": "assistant", "content": main_text})
 
     if not is_regen and q not in st.session_state.query_history:
         st.session_state.query_history.append(q)
