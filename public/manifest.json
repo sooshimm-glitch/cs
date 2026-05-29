@@ -1,0 +1,11 @@
+{
+  "short_name": "AdCS Pro",
+  "name": "AdCS Pro - 대대행 CS 자동화",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0a0a0a",
+  "background_color": "#0a0a0a",
+  "icons": [
+    { "src": "favicon.ico", "sizes": "64x64", "type": "image/x-icon" }
+  ]
+}
