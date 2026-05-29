@@ -29,8 +29,16 @@ html, body, [class*="css"] {
 }
 
 /* Hide default streamlit elements */
-#MainMenu, footer, header { visibility: hidden; }
+#MainMenu, footer { visibility: hidden; }
+header { visibility: visible !important; }
 .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
+
+/* Force sidebar toggle button visible */
+[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
