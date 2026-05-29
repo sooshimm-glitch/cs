@@ -8,6 +8,7 @@ import streamlit as st
 from openai import OpenAI
 import io
 import re
+import requests
 from datetime import datetime
 
 # ─── Page Config ───────────────────────────────────────────────
@@ -553,22 +554,101 @@ def build_system_prompt(question: str, guideline: str, gen_count: int, mode: str
 - 어체: 정중하고 전문적인 B2B 커뮤니케이션 스타일"""
 
 
-def call_openai(api_key: str, question: str, guideline: str, gen_count: int, mode: str) -> str:
+# ─── 매체별 검색 도메인 화이트리스트 ──────────────────────────
+MEDIA_DOMAINS = {
+    "네이버": ["searchad.naver.com", "adguide.naver.com", "naver.com"],
+    "카카오": ["moment.kakao.com", "kakaobusiness.kakao.com", "kakao.com"],
+    "당근마켓": ["business.daangn.com", "daangn.com"],
+    "구글":  ["support.google.com", "ads.google.com", "google.com"],
+    "메타":  ["business.facebook.com", "facebook.com", "instagram.com"],
+    "유튜브": ["support.google.com", "ads.google.com"],
+    "틱톡":  ["ads.tiktok.com", "tiktok.com"],
+}
+
+def tavily_search(query: str, tavily_key: str, domains: list) -> str:
+    """Tavily API로 실시간 검색 후 결과 텍스트 반환"""
+    try:
+        payload = {
+            "api_key": tavily_key,
+            "query": query,
+            "search_depth": "advanced",
+            "include_answer": True,
+            "include_raw_content": False,
+            "max_results": 5,
+        }
+        if domains:
+            payload["include_domains"] = domains
+
+        resp = requests.post(
+            "https://api.tavily.com/search",
+            json=payload,
+            timeout=15,
+        )
+        data = resp.json()
+
+        parts = []
+        if data.get("answer"):
+            parts.append(f"[검색 요약]\n{data['answer']}\n")
+
+        for r in data.get("results", []):
+            title   = r.get("title", "")
+            url     = r.get("url", "")
+            content = r.get("content", "")
+            parts.append(f"[출처: {title}]\nURL: {url}\n{content}\n")
+
+        return "\n---\n".join(parts) if parts else ""
+    except Exception as e:
+        return f"[검색 오류: {e}]"
+
+
+def call_openai(api_key: str, tavily_key: str, question: str, guideline: str, gen_count: int, mode: str) -> str:
     client = OpenAI(api_key=api_key)
+
+    # ── Tavily 검색 (기본 모드 항상, 정밀 모드도 보완 검색) ──
+    search_context = ""
+    if tavily_key:
+        media_found = detect_media(question)
+        domains = []
+        for _, label in media_found:
+            for key, dmns in MEDIA_DOMAINS.items():
+                if key in label:
+                    domains.extend(dmns)
+        domains = list(set(domains))
+
+        search_query = f"{question} 광고 정책 공식 가이드 2024 2025"
+        search_context = tavily_search(search_query, tavily_key, domains)
+
+    # ── 시스템 프롬프트 ──
     system_prompt = build_system_prompt(question, guideline, gen_count, mode)
+
+    # 검색 결과 주입
+    if search_context:
+        system_prompt += f"""
+
+# 실시간 검색 결과 (최신 매체 공식 정보)
+아래는 방금 검색한 공식 매체 페이지의 실제 내용입니다.
+반드시 이 내용을 우선 참고하여 답변하고, 출처 URL을 📌 참고 출처 섹션에 포함하세요.
+
+{search_context}
+"""
+
     messages = [{"role": "system", "content": system_prompt}]
     for msg in st.session_state.conversation:
         role = "user" if msg["role"] == "user" else "assistant"
         messages.append({"role": role, "content": msg["content"]})
+
     if gen_count > 1:
         user_msg = f"이전 답변({gen_count-1}회차)과는 다른 논리와 구성으로 새로운 최적 답변을 생성해주세요. 원래 질문: {question}"
     else:
         user_msg = question
+
     messages.append({"role": "user", "content": user_msg})
+
     response = client.chat.completions.create(
-        model="gpt-4o-search-preview",
+        model="gpt-4o",
         messages=messages,
         max_tokens=2000,
+        temperature=0.3,
     )
     return response.choices[0].message.content
 
@@ -596,6 +676,25 @@ with st.sidebar:
             st.markdown("<p style='font-size:11px;color:#f87171;margin-top:4px;'>● 키 형식 확인 필요 (sk- 로 시작)</p>", unsafe_allow_html=True)
     else:
         st.markdown("<p style='font-size:11px;color:#6b6a80;margin-top:4px;'>● 미연결</p>", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.markdown("**🔍 Tavily API Key** <span style='font-size:10px;color:#34d399;background:rgba(52,211,153,0.1);padding:1px 6px;border-radius:10px;'>실시간 검색</span>", unsafe_allow_html=True)
+    tavily_key = st.text_input(
+        "Tavily Key", type="password", placeholder="tvly-...", label_visibility="collapsed"
+    )
+    if tavily_key:
+        if tavily_key.startswith("tvly-") and len(tavily_key) > 10:
+            st.markdown("<p style='font-size:11px;color:#34d399;margin-top:4px;'>● 검색 연결됨</p>", unsafe_allow_html=True)
+        else:
+            st.markdown("<p style='font-size:11px;color:#f87171;margin-top:4px;'>● 키 형식 확인 필요</p>", unsafe_allow_html=True)
+    else:
+        st.markdown(
+            "<p style='font-size:11px;color:#6b6a80;margin-top:4px;'>● 미연결 (없으면 검색 생략)</p>"
+            "<p style='font-size:10px;color:#6b6a80;margin-top:2px;'>"
+            "무료 키: <a href='https://tavily.com' target='_blank' style='color:#4f8ef7;'>tavily.com</a> (월 1,000회)</p>",
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
 
@@ -853,9 +952,9 @@ def run_generation(q: str, is_regen: bool):
     st.session_state.gen_count += 1
 
     steps = (
-        ["🌐 매체 키워드 파악 중...", "📡 최신 정책 검색 중...", "✍️ 답변 작성 중...", "✅ 완료!"]
+        ["🌐 매체 키워드 파악 중...", "🔍 공식 매체 페이지 검색 중...", "✍️ 검색 결과 기반 답변 작성 중...", "✅ 완료!"]
         if mode == "기본 모드" else
-        ["🔍 매체 감지 중...", "📂 가이드라인 분석 중...", "🌐 최신 공지 검색 중...", "✅ 완료!"]
+        ["🔍 매체 감지 중...", "🔍 최신 공지 실시간 검색 중...", "📂 가이드라인 대조 분석 중...", "✅ 완료!"]
     )
 
     with st.status("답변을 생성하는 중...", expanded=True) as status:
@@ -865,6 +964,7 @@ def run_generation(q: str, is_regen: bool):
         try:
             raw = call_openai(
                 api_key=api_key,
+                tavily_key=tavily_key,
                 question=q,
                 guideline=guideline,
                 gen_count=st.session_state.gen_count,
