@@ -21,19 +21,23 @@ st.set_page_config(
 # ─── Custom CSS ────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* Import fonts */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Noto Sans KR', sans-serif;
 }
 
-/* Hide default streamlit elements */
 #MainMenu, footer { visibility: hidden; }
 header { visibility: visible !important; }
-.block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
 
-/* Force sidebar toggle button visible */
+/* ── 전체 배경 ── */
+.stApp { background: #f5f5f7; }
+.block-container {
+    padding: 0 !important;
+    max-width: 100% !important;
+}
+
+/* Force sidebar toggle */
 [data-testid="collapsedControl"] {
     display: flex !important;
     visibility: visible !important;
@@ -42,15 +46,18 @@ header { visibility: visible !important; }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
-    background: #1a1a2e;
-    min-width: 280px !important;
-    max-width: 320px !important;
+    background: #1a1a2e !important;
+    min-width: 270px !important;
+    max-width: 300px !important;
 }
 [data-testid="stSidebar"] > div:first-child {
-    min-width: 280px !important;
+    min-width: 270px !important;
+    padding: 1.2rem 1rem !important;
 }
 [data-testid="stSidebar"] * {
     color: #e8e6df !important;
+    word-break: keep-all !important;
+    overflow-wrap: break-word !important;
 }
 [data-testid="stSidebar"] .stTextInput input {
     background: rgba(255,255,255,0.06) !important;
@@ -73,27 +80,48 @@ header { visibility: visible !important; }
 }
 [data-testid="stSidebar"] .stMarkdown h3 {
     color: #ffffff !important;
-    font-size: 17px !important;
+    font-size: 16px !important;
+}
+.hist-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    padding: 7px 10px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: #a8a6b8;
+    border: 1px solid transparent;
+    word-break: keep-all;
+}
+.hist-item:hover { background: rgba(79,142,247,0.1); border-color: rgba(79,142,247,0.2); }
+
+/* ── 채팅 레이아웃 ── */
+.chat-wrap {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 16px;
 }
 
-/* ── Main Area ── */
-.main-header {
+/* 상단 헤더 */
+.chat-header {
+    padding: 18px 0 10px;
+    border-bottom: 1px solid #e2e1dc;
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #e5e3dc;
+    flex-shrink: 0;
 }
-.main-title {
-    font-size: 20px;
+.chat-header-title {
+    font-size: 17px;
     font-weight: 700;
     color: #1a1917;
 }
-.badge {
+.chat-badge {
     font-size: 10px;
     font-weight: 700;
-    padding: 3px 10px;
+    padding: 2px 9px;
     border-radius: 20px;
     background: #dbeafe;
     color: #2563eb;
@@ -101,8 +129,170 @@ header { visibility: visible !important; }
     text-transform: uppercase;
 }
 
-/* ── Detected media chips ── */
-.chip-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 12px; }
+/* 모드 탭 */
+.mode-tab-wrap {
+    display: flex;
+    gap: 0;
+    background: #ebebeb;
+    border-radius: 10px;
+    padding: 3px;
+    margin: 12px 0 0;
+    flex-shrink: 0;
+}
+.mode-tab {
+    flex: 1;
+    text-align: center;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #8a8680;
+    border: none;
+    background: transparent;
+    transition: all 0.2s;
+}
+.mode-tab.active {
+    background: #fff;
+    color: #1a1917;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* 채팅 메시지 영역 */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 0 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 환영 화면 */
+.welcome-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 8px;
+    padding: 40px 0 20px;
+}
+.welcome-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1917;
+    text-align: center;
+}
+.welcome-sub {
+    font-size: 13px;
+    color: #8a8680;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+/* 예시 질문 카드 */
+.example-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    margin-top: 8px;
+}
+.example-card {
+    background: #fff;
+    border: 1px solid #e5e3dc;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #4a4845;
+    cursor: pointer;
+    transition: all 0.18s;
+    line-height: 1.5;
+}
+.example-card:hover { border-color: #2563eb; background: #f0f7ff; }
+.example-card-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #8a8680;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 3px;
+}
+
+/* 사용자 말풍선 */
+.msg-user {
+    display: flex;
+    justify-content: flex-end;
+}
+.msg-user-bubble {
+    background: #2563eb;
+    color: #fff;
+    border-radius: 18px 18px 4px 18px;
+    padding: 12px 16px;
+    max-width: 72%;
+    font-size: 14px;
+    line-height: 1.6;
+    word-break: keep-all;
+}
+
+/* AI 답변 */
+.msg-ai {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+.msg-ai-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.msg-ai-body {
+    flex: 1;
+    min-width: 0;
+}
+.msg-ai-meta {
+    font-size: 10px;
+    color: #8a8680;
+    margin-bottom: 6px;
+}
+.msg-ai-bubble {
+    background: #fff;
+    border: 1px solid #e5e3dc;
+    border-radius: 4px 18px 18px 18px;
+    padding: 16px 20px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #1a1917;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    word-break: keep-all;
+}
+.msg-ai-sources {
+    margin-top: 10px;
+    background: #f9f8f5;
+    border: 1px solid #e5e3dc;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+}
+.msg-ai-sources-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #8a8680;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+/* 매체 감지 칩 */
+.chip-wrap { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 10px; }
 .chip {
     font-size: 11px;
     font-weight: 700;
@@ -117,193 +307,82 @@ header { visibility: visible !important; }
 .chip-google { background: rgba(66,133,244,0.12); color: #1a56cc; }
 .chip-meta   { background: rgba(24,119,242,0.12); color: #1877f2; }
 
-/* ── Result box ── */
-.result-box {
-    background: #ffffff;
-    border: 1px solid #e5e3dc;
-    border-radius: 12px;
-    padding: 22px 26px;
-    margin-top: 0;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-    line-height: 1.85;
-    color: #1a1917;
-    font-size: 14px;
-    white-space: pre-wrap;
-    word-break: keep-all;
+/* ── 입력창 하단 고정 ── */
+.input-area {
+    flex-shrink: 0;
+    padding: 12px 0 20px;
+    border-top: 1px solid #e2e1dc;
+    background: #f5f5f7;
 }
-.result-header-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(to right, #f0f7ff, #fff);
-    border: 1px solid #e5e3dc;
-    border-bottom: none;
-    border-radius: 12px 12px 0 0;
-    padding: 12px 20px;
-}
-.result-label {
+.input-label {
     font-size: 11px;
-    font-weight: 700;
-    color: #2563eb;
+    font-weight: 600;
+    color: #8a8680;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-}
-.result-time {
-    font-size: 10px;
-    color: #8a8680;
-}
-.result-box-body {
-    background: #ffffff;
-    border: 1px solid #e5e3dc;
-    border-top: none;
-    border-radius: 0 0 12px 12px;
-    padding: 20px 24px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-}
-
-/* ── Sources ── */
-.sources-box {
-    background: #f9f8f5;
-    border: 1px solid #e5e3dc;
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-top: 12px;
-    font-size: 12px;
-}
-.sources-title {
-    font-size: 10px;
-    font-weight: 700;
-    color: #8a8680;
-    text-transform: uppercase;
-    letter-spacing: 1px;
     margin-bottom: 8px;
 }
 
-/* ── Loading steps ── */
-.step-done   { color: #059669; font-weight: 500; }
-.step-active { color: #2563eb; font-weight: 600; }
-.step-idle   { color: #8a8680; }
-
-/* ── Tips ── */
-.tip-card {
-    background: #fff;
-    border: 1px solid #e5e3dc;
-    border-radius: 10px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 13px;
-    color: #4a4845;
-    margin-bottom: 6px;
-}
-.tip-card:hover { border-color: #2563eb; background: #f0f7ff; }
-.tip-media-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: #8a8680;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 4px;
-}
-
-/* ── Stbutton overrides ── */
-div[data-testid="stButton"] > button {
-    border-radius: 8px !important;
+/* 입력창 스타일 */
+.stTextArea textarea {
+    border-radius: 16px !important;
+    border: 1.5px solid #e2e1dc !important;
+    background: #fff !important;
     font-family: 'Noto Sans KR', sans-serif !important;
-    font-weight: 500 !important;
+    font-size: 14px !important;
+    padding: 14px 18px !important;
+    resize: none !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important;
+    transition: border-color 0.2s !important;
+}
+.stTextArea textarea:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 2px 16px rgba(37,99,235,0.12) !important;
+}
+
+/* 버튼 */
+div[data-testid="stButton"] > button {
+    border-radius: 10px !important;
+    font-family: 'Noto Sans KR', sans-serif !important;
+    font-weight: 600 !important;
     font-size: 13px !important;
     transition: all 0.18s !important;
+    height: 42px !important;
 }
 div[data-testid="stButton"] > button[kind="primary"] {
     background: #2563eb !important;
     color: white !important;
     box-shadow: 0 2px 8px rgba(37,99,235,0.25) !important;
+    border: none !important;
 }
 div[data-testid="stButton"] > button[kind="primary"]:hover {
     background: #1d4ed8 !important;
-    box-shadow: 0 4px 12px rgba(37,99,235,0.35) !important;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35) !important;
 }
 div[data-testid="stButton"] > button[kind="secondary"] {
-    border: 1px solid #dbeafe !important;
+    border: 1.5px solid #e2e1dc !important;
+    color: #4a4845 !important;
+    background: #fff !important;
+}
+div[data-testid="stButton"] > button[kind="secondary"]:hover {
+    border-color: #2563eb !important;
     color: #2563eb !important;
-    background: #f8faff !important;
+    background: #f0f7ff !important;
 }
 
-/* ── History items ── */
-.hist-item {
-    background: rgba(255,255,255,0.05);
-    border-radius: 6px;
-    padding: 7px 10px;
-    margin-bottom: 4px;
-    font-size: 11px;
-    color: #a8a6b8;
-    border: 1px solid transparent;
-    word-break: keep-all;
-    cursor: default;
-}
-.hist-item:hover { background: rgba(79,142,247,0.1); border-color: rgba(79,142,247,0.2); }
-
-/* ── Error / Warning ── */
-div[data-testid="stAlert"] {
-    border-radius: 8px !important;
-}
-
-/* ── Mode selector ── */
-.mode-bar {
-    display: flex;
-    gap: 0;
-    background: #f1f0ec;
-    border-radius: 10px;
-    padding: 4px;
-    margin-bottom: 16px;
-}
-.mode-btn {
-    flex: 1;
-    text-align: center;
-    padding: 8px 12px;
-    border-radius: 7px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #8a8680;
-    border: none;
-    background: transparent;
-}
-.mode-btn.active-normal {
-    background: #fff;
-    color: #1a1917;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-}
-.mode-btn.active-precise {
-    background: #2563eb;
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(37,99,235,0.3);
-}
-
-/* ── Mode info card ── */
+/* mode info */
 .mode-info {
     border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
     font-size: 12px;
-    line-height: 1.7;
+    line-height: 1.6;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: flex-start;
 }
-.mode-info-normal {
-    background: #f9f8f5;
-    border: 1px solid #e5e3dc;
-    color: #4a4845;
-}
-.mode-info-precise {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    color: #1e40af;
-}
-.mode-info-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-.mode-info-title { font-weight: 700; margin-bottom: 2px; font-size: 13px; }
+.mode-info-normal  { background: #f9f8f5; border: 1px solid #e5e3dc; color: #4a4845; }
+.mode-info-precise { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
 .mode-tag {
     display: inline-block;
     font-size: 10px;
@@ -316,69 +395,41 @@ div[data-testid="stAlert"] {
 .tag-free { background: #d1fae5; color: #065f46; }
 .tag-paid { background: #dbeafe; color: #1e40af; }
 
-/* ── Sidebar guideline highlight ── */
-.guide-highlight {
-    border: 1.5px solid #4f8ef7 !important;
-    border-radius: 8px;
-    padding: 10px;
-    background: rgba(79,142,247,0.06);
-}
-.guide-dim {
-    opacity: 0.45;
-    pointer-events: none;
-}
-
-/* ── Result mode badge ── */
-.result-mode-badge {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 20px;
-    letter-spacing: 0.3px;
-}
-.badge-normal  { background: #f3f4f6; color: #6b7280; }
-.badge-precise { background: #dbeafe; color: #1d4ed8; }
+div[data-testid="stAlert"] { border-radius: 10px !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ─── Session State Init ────────────────────────────────────────
+# ─── Session State ─────────────────────────────────────────────
 defaults = {
-    "answer": None,
-    "sources": [],
+    "chat_messages": [],      # [{role, content, sources, mode, time}]
+    "answer_history": [],
+    "query_history": [],
+    "guideline_text": "",
+    "analysis_mode": "기본 모드",
     "gen_count": 0,
     "current_question": "",
     "conversation": [],
-    "query_history": [],
-    "answer_history": [],   # 질문 + 답변 전체 기록
-    "guideline_text": "",
-    "show_answer": False,
-    "analysis_mode": "일반 모드",
-    "last_mode": "일반 모드",
 }
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
 
-# ─── Helper: extract text from uploaded files ──────────────────
+# ─── Helpers ──────────────────────────────────────────────────
 def extract_file_text(uploaded_file) -> str:
     name = uploaded_file.name.lower()
     content = ""
     try:
         if name.endswith(".txt"):
             content = uploaded_file.read().decode("utf-8", errors="ignore")
-
         elif name.endswith(".pdf"):
             try:
                 import PyPDF2
                 reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
-                content = "\n".join(
-                    page.extract_text() or "" for page in reader.pages
-                )
+                content = "\n".join(page.extract_text() or "" for page in reader.pages)
             except ImportError:
                 content = "[PDF 파싱 불가 — pip install PyPDF2]"
-
         elif name.endswith((".xlsx", ".xls")):
             try:
                 import openpyxl
@@ -390,7 +441,6 @@ def extract_file_text(uploaded_file) -> str:
                 content = "\n".join(rows)
             except ImportError:
                 content = "[XLSX 파싱 불가 — pip install openpyxl]"
-
         elif name.endswith((".docx", ".doc")):
             try:
                 from docx import Document
@@ -398,14 +448,11 @@ def extract_file_text(uploaded_file) -> str:
                 content = "\n".join(p.text for p in doc.paragraphs)
             except ImportError:
                 content = "[DOCX 파싱 불가 — pip install python-docx]"
-
     except Exception as e:
         content = f"[파일 읽기 오류: {e}]"
+    return content[:6000]
 
-    return content[:6000]  # token safety
 
-
-# ─── Helper: detect media keywords ────────────────────────────
 MEDIA_MAP = {
     "네이버": ("chip-naver", "🟢 네이버"),
     "당근": ("chip-daangn", "🟠 당근"),
@@ -426,8 +473,6 @@ def detect_media(text: str):
             seen.add(label)
     return found
 
-
-# ─── Helper: parse sources from answer ────────────────────────
 def parse_sources(text: str):
     match = re.search(r"📌\s*참고 출처[:\s]*([\s\S]*?)$", text)
     if not match:
@@ -436,15 +481,12 @@ def parse_sources(text: str):
     lines = [l.strip() for l in match.group(1).strip().split("\n") if l.strip()]
     return main, lines
 
-
-# ─── Helper: build system prompt (mode-aware) ─────────────────
 def build_system_prompt(question: str, guideline: str, gen_count: int, mode: str) -> str:
     media_found = detect_media(question)
     regen_note = (
         f"\n\n⚠️ 이전 답변과 완전히 다른 논리와 구성으로 새 답변을 생성하세요 ({gen_count}회차)."
         if gen_count > 1 else ""
     )
-
     media_note = (
         f"질문에 {', '.join(label for _, label in media_found)} 매체가 언급되어 있습니다. "
         "해당 매체의 최신 공식 정책과 공지사항을 기반으로 답변하고, "
@@ -453,15 +495,14 @@ def build_system_prompt(question: str, guideline: str, gen_count: int, mode: str
         "특정 매체가 명시적으로 언급되지 않았습니다. 일반적인 광고 운영 기준으로 답변하되 관련 출처를 포함하세요."
     )
 
-    if mode == "일반 모드":
-        return f"""당신은 광고 대행사의 전문 CS 담당자입니다. 대대행사의 기술 질문에 대해 **최신 매체 공식 정책과 팩트**를 중심으로 단 하나의 최적 답변을 제공합니다.
+    if mode == "기본 모드":
+        return f"""당신은 광고 대행사의 전문 CS 담당자입니다. 대대행사의 기술 질문에 대해 최신 매체 공식 정책과 팩트를 중심으로 단 하나의 최적 답변을 제공합니다.
 
-# 기본 모드 원칙
+# 원칙
 - 광고 매체(네이버, 카카오, 당근마켓, 구글, 메타 등)의 최신 정책과 스펙을 정확히 반영합니다.
 - 모든 수치와 정책 기준은 반드시 공식 출처와 함께 제공합니다.
 - 복수의 답변을 나열하지 않고, 가장 완벽한 단 하나의 답변만 제공합니다.
 - 불확실한 정보는 절대 단정하지 않고, 공식 출처 확인을 안내합니다.
-- 전문적이되 대대행사 담당자가 이해하기 쉬운 명확한 언어를 사용합니다.
 
 # 매체 감지 결과
 {media_note}
@@ -474,16 +515,14 @@ def build_system_prompt(question: str, guideline: str, gen_count: int, mode: str
 - 답변 마지막에 "📌 참고 출처:" 섹션 반드시 포함 (공식 URL 형식)
 - 어체: 정중하고 전문적인 B2B 커뮤니케이션 스타일"""
 
-    # ── 정밀 분석 모드 ──
     guideline_note = (
         f"다음은 회사 가이드라인 내용입니다. 이 말투·기준·단가를 최우선으로 적용하세요:\n\n{guideline}"
         if guideline else
         "업로드된 가이드라인 없음. 일반 광고 업계 기준으로 답변하되 출처를 반드시 포함하세요."
     )
+    return f"""당신은 광고 대행사의 전문 CS 담당자입니다. 업로드된 사내 가이드라인 + 최신 매체 공식 정책을 100% 반영한 팩트 중심의 단 하나의 최적 답변을 제공합니다.
 
-    return f"""당신은 광고 대행사의 전문 CS 담당자입니다. 대대행사의 날카로운 기술 질문에 대해 **업로드된 사내 가이드라인 + 최신 매체 공식 정책**을 100% 반영한 팩트 중심의 단 하나의 최적 답변을 제공합니다.
-
-# 정밀 분석 모드 원칙
+# 원칙
 - 사내 가이드라인의 말투·기준·단가를 일반 매체 정책보다 우선 적용합니다.
 - 가이드라인에 없는 내용은 최신 매체 공식 정책으로 보완합니다.
 - 모든 수치와 정책 기준은 반드시 출처와 함께 제공합니다.
@@ -504,25 +543,18 @@ def build_system_prompt(question: str, guideline: str, gen_count: int, mode: str
 - 어체: 정중하고 전문적인 B2B 커뮤니케이션 스타일"""
 
 
-# ─── Helper: call OpenAI API ──────────────────────────────────
 def call_openai(api_key: str, question: str, guideline: str, gen_count: int, mode: str) -> str:
     client = OpenAI(api_key=api_key)
-
     system_prompt = build_system_prompt(question, guideline, gen_count, mode)
-
-    # Build message history for multi-turn (regen)
     messages = [{"role": "system", "content": system_prompt}]
     for msg in st.session_state.conversation:
         role = "user" if msg["role"] == "user" else "assistant"
         messages.append({"role": role, "content": msg["content"]})
-
     if gen_count > 1:
         user_msg = f"이전 답변({gen_count-1}회차)과는 다른 논리와 구성으로 새로운 최적 답변을 생성해주세요. 원래 질문: {question}"
     else:
         user_msg = question
-
     messages.append({"role": "user", "content": user_msg})
-
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=messages,
@@ -539,39 +571,25 @@ with st.sidebar:
     st.markdown("### 🎯 AdCS Pro")
     st.markdown(
         "<p style='font-size:11px;color:#6b6a80;text-transform:uppercase;"
-        "letter-spacing:0.8px;margin-top:-8px;'>대대행 대응 자동화 솔루션</p>",
+        "letter-spacing:0.8px;margin-top:-8px;'>대대행 자동화</p>",
         unsafe_allow_html=True,
     )
     st.markdown("---")
 
-    # API Key
     st.markdown("**🔑 OpenAI API Key**")
     api_key = st.text_input(
-        "API Key",
-        type="password",
-        placeholder="sk-...",
-        label_visibility="collapsed",
+        "API Key", type="password", placeholder="sk-...", label_visibility="collapsed"
     )
     if api_key:
         if api_key.startswith("sk-") and len(api_key) > 20:
-            st.markdown(
-                "<p style='font-size:11px;color:#34d399;margin-top:4px;'>● 연결됨</p>",
-                unsafe_allow_html=True,
-            )
+            st.markdown("<p style='font-size:11px;color:#34d399;margin-top:4px;'>● 연결됨</p>", unsafe_allow_html=True)
         else:
-            st.markdown(
-                "<p style='font-size:11px;color:#f87171;margin-top:4px;'>● 키 형식 확인 필요 (sk- 로 시작해야 합니다)</p>",
-                unsafe_allow_html=True,
-            )
+            st.markdown("<p style='font-size:11px;color:#f87171;margin-top:4px;'>● 키 형식 확인 필요 (sk- 로 시작)</p>", unsafe_allow_html=True)
     else:
-        st.markdown(
-            "<p style='font-size:11px;color:#6b6a80;margin-top:4px;'>● 미연결</p>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("<p style='font-size:11px;color:#6b6a80;margin-top:4px;'>● 미연결</p>", unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # File Upload — highlighted only in 정밀 분석 모드
     is_precise = st.session_state.get("analysis_mode") == "정밀 분석 모드"
     if is_precise:
         st.markdown(
@@ -596,32 +614,22 @@ with st.sidebar:
         label_visibility="collapsed",
         disabled=not is_precise,
     )
-
-    guideline_text = ""
     if uploaded_files:
         file_texts = []
         for f in uploaded_files:
             txt = extract_file_text(f)
             if txt:
                 file_texts.append(f"=== {f.name} ===\n{txt}")
-            st.markdown(
-                f"<div class='hist-item'>📄 {f.name}</div>",
-                unsafe_allow_html=True,
-            )
-        guideline_text = "\n\n".join(file_texts)
-        st.session_state.guideline_text = guideline_text
+            st.markdown(f"<div class='hist-item'>📄 {f.name}</div>", unsafe_allow_html=True)
+        st.session_state.guideline_text = "\n\n".join(file_texts)
     else:
-        st.markdown(
-            "<p style='font-size:11px;color:#6b6a80;'>PDF · TXT · XLSX · DOCX 지원</p>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("<p style='font-size:11px;color:#6b6a80;'>PDF · TXT · XLSX · DOCX 지원</p>", unsafe_allow_html=True)
 
     st.markdown("---")
 
-    # Supported media
-    st.markdown("**📡 실시간 서칭 지원 매체**")
+    st.markdown("**📡 지원 매체**")
     st.markdown(
-        """<div class='chip-wrap'>
+        """<div style='display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;'>
         <span class='chip chip-naver'>네이버</span>
         <span class='chip chip-kakao'>카카오</span>
         <span class='chip chip-daangn'>당근</span>
@@ -633,142 +641,166 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # ── Answer History Viewer ──────────────────────────────────
+    # 검색 기록
     st.markdown("**🕐 검색 기록**")
     if st.session_state.answer_history:
         total = len(st.session_state.answer_history)
-        st.markdown(
-            f"<p style='font-size:10px;color:#6b6a80;margin-bottom:8px;'>"
-            f"총 {total}건의 답변이 저장되어 있습니다.</p>",
-            unsafe_allow_html=True,
-        )
+        st.markdown(f"<p style='font-size:10px;color:#6b6a80;margin-bottom:8px;'>총 {total}건</p>", unsafe_allow_html=True)
         for idx, item in enumerate(reversed(st.session_state.answer_history)):
-            item_idx = total - idx  # 역순 번호
-            short_q = item["question"][:40] + "…" if len(item["question"]) > 40 else item["question"]
-            mode_icon = "🔬" if item.get("mode") == "정밀 분석 모드" else "🧠"
+            item_idx = total - idx
+            short_q = item["question"][:35] + "…" if len(item["question"]) > 35 else item["question"]
+            mode_icon = "🔬" if item.get("mode") == "정밀 분석 모드" else "🌐"
             with st.expander(f"{mode_icon} #{item_idx}  {short_q}", expanded=False):
-                st.markdown(
-                    f"<p style='font-size:10px;color:#8a8680;margin-bottom:6px;'>"
-                    f"🕒 {item.get('time','?')} · {item.get('mode','?')}</p>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    f"<p style='font-size:12px;font-weight:600;color:#c8c6d8;margin-bottom:4px;'>💬 질문</p>"
-                    f"<p style='font-size:12px;color:#a8a6b8;line-height:1.6;'>{item['question']}</p>",
-                    unsafe_allow_html=True,
-                )
-                st.markdown(
-                    "<p style='font-size:12px;font-weight:600;color:#c8c6d8;margin:8px 0 4px;'>📝 답변</p>",
-                    unsafe_allow_html=True,
-                )
-                st.text_area(
-                    "답변 내용",
-                    value=item["answer"],
-                    height=200,
-                    key=f"hist_ans_{item_idx}",
-                    label_visibility="collapsed",
-                )
-                if item.get("sources"):
-                    st.markdown(
-                        "<p style='font-size:10px;font-weight:700;color:#8a8680;margin-top:6px;'>🔗 출처</p>",
-                        unsafe_allow_html=True,
-                    )
-                    for src in item["sources"]:
-                        st.markdown(
-                            f"<p style='font-size:11px;color:#a8a6b8;'>• {src}</p>",
-                            unsafe_allow_html=True,
-                        )
-        st.markdown("")
-        if st.button("🗑 기록 전체 삭제", use_container_width=True, key="clear_history"):
+                st.markdown(f"<p style='font-size:10px;color:#8a8680;'>🕒 {item.get('time','?')} · {item.get('mode','?')}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size:12px;color:#a8a6b8;'>{item['question']}</p>", unsafe_allow_html=True)
+                st.text_area("답변", value=item["answer"], height=160, key=f"hist_{item_idx}", label_visibility="collapsed")
+        if st.button("🗑 기록 삭제", use_container_width=True, key="clear_hist"):
             st.session_state.answer_history = []
             st.session_state.query_history = []
             st.rerun()
     else:
-        st.markdown(
-            "<p style='font-size:11px;color:#6b6a80;'>답변 생성 시 기록됩니다.</p>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("<p style='font-size:11px;color:#6b6a80;'>답변 생성 시 기록됩니다.</p>", unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown(
-        "<p style='font-size:10px;color:#6b6a80;line-height:1.6;'>"
-        "Powered by OpenAI GPT-4o<br>"
-        "질문에 매체명이 포함되면<br>자동으로 공지를 검색합니다.</p>",
+        "<p style='font-size:10px;color:#6b6a80;line-height:1.6;'>Powered by OpenAI GPT-4o</p>",
         unsafe_allow_html=True,
     )
 
 
 # ══════════════════════════════════════════════════════════════
-#  MAIN CONTENT
+#  MAIN — 채팅 UI
 # ══════════════════════════════════════════════════════════════
+
+# 헤더
 st.markdown(
-    "<div class='main-header'>"
-    "<span style='font-size:22px;'>📋</span>"
-    "<span class='main-title'>CS 매체 대응 자동화</span>"
-    "<span class='badge'>BETA</span>"
+    "<div class='chat-header'>"
+    "<span style='font-size:20px;'>📋</span>"
+    "<span class='chat-header-title'>CS 매체 대응 자동화</span>"
+    "<span class='chat-badge'>BETA</span>"
     "</div>",
     unsafe_allow_html=True,
 )
 
-# ── Mode Selector ─────────────────────────────────────────────
+# 모드 선택 라디오
 selected_mode = st.radio(
-    "응대 모드 선택",
-    options=["일반 모드", "정밀 분석 모드"],
-    index=0 if st.session_state.analysis_mode == "일반 모드" else 1,
+    "모드",
+    options=["기본 모드", "정밀 분석 모드"],
+    index=0 if st.session_state.analysis_mode == "기본 모드" else 1,
     horizontal=True,
     label_visibility="collapsed",
 )
-
-# Sync mode to session state and reset if mode changed
 if selected_mode != st.session_state.analysis_mode:
     st.session_state.analysis_mode = selected_mode
-    # Reset answer when mode switches
-    st.session_state.show_answer = False
-    st.session_state.answer = None
-    st.session_state.sources = []
     st.session_state.gen_count = 0
     st.session_state.conversation = []
     st.rerun()
 
-# Mode info card
-if selected_mode == "일반 모드":
+# 모드 설명
+if selected_mode == "기본 모드":
     st.markdown(
         "<div class='mode-info mode-info-normal'>"
-        "<div class='mode-info-icon'>🌐</div>"
-        "<div>"
-        "<div class='mode-info-title'>기본 모드"
-        "<span class='mode-tag tag-free'>GPT-4o</span></div>"
-        "최신 매체 공식 정책을 실시간 반영한 <b>팩트 중심·출처 포함</b> 답변을 제공합니다. "
-        "가이드라인 파일 없이도 정확한 정책 기반으로 즉시 답변합니다."
-        "</div></div>",
+        "<span style='font-size:16px;'>🌐</span>"
+        "<div><span style='font-weight:700;font-size:12px;'>기본 모드</span>"
+        "<span class='mode-tag tag-free'>GPT-4o</span><br>"
+        "최신 매체 공식 정책 기반 팩트 중심 답변 · 출처 포함</div></div>",
         unsafe_allow_html=True,
     )
 else:
     st.markdown(
         "<div class='mode-info mode-info-precise'>"
-        "<div class='mode-info-icon'>🔬</div>"
-        "<div>"
-        "<div class='mode-info-title'>정밀 분석 모드"
-        "<span class='mode-tag tag-paid'>가이드라인 우선</span></div>"
-        "기본 모드의 팩트·출처 답변에 <b>업로드한 사내 가이드라인을 최우선 적용</b>합니다. "
-        "회사 말투·단가·기준이 반영된 답변이 필요할 때 사용하세요. "
-        "<b>좌측에서 가이드라인 파일을 업로드하세요.</b>"
-        "</div></div>",
+        "<span style='font-size:16px;'>🔬</span>"
+        "<div><span style='font-weight:700;font-size:12px;'>정밀 분석 모드</span>"
+        "<span class='mode-tag tag-paid'>가이드라인 우선</span><br>"
+        "사내 가이드라인 최우선 적용 + 최신 매체 정책 보완 · <b>좌측에서 파일 업로드</b></div></div>",
         unsafe_allow_html=True,
     )
 
-# ── Question Input ─────────────────────────────────────────────
-st.markdown("**대대행사 질문 입력**")
-question = st.text_area(
-    "질문",
-    height=130,
-    placeholder="예) 네이버 쇼핑 검색광고에서 최근 입찰가 최저 기준이 변경됐다고 하던데, "
-                "현재 최소 입찰가 기준과 노출 조건이 어떻게 되나요? "
-                "브랜드 키워드 제한 정책도 함께 알려주세요.",
-    label_visibility="collapsed",
+st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
+
+# ── 채팅 메시지 출력 ───────────────────────────────────────────
+EXAMPLES = [
+    ("🟢 네이버", "네이버 GFA 영상광고 사이즈 정책이 최근 변경됐나요? 현재 지원 포맷과 해상도, 파일 용량 제한을 상세히 알려주세요."),
+    ("🟠 당근", "당근마켓 지역 타겟팅 광고에서 반경 설정 최솟값이 어떻게 되나요? 최근 정책 변경 내용도 포함해 주세요."),
+    ("🟡 카카오", "카카오모먼트 디스플레이 광고 소재 심사 기준 중 텍스트 비율 제한이 있나요? 예외 사항도 설명해 주세요."),
+    ("🔵 구글", "구글 PMax 캠페인 전환 추적 설정 시 주의해야 할 최신 정책 변경 사항이 있나요?"),
+]
+
+if not st.session_state.chat_messages:
+    # 환영 화면
+    st.markdown(
+        "<div style='text-align:center;padding:32px 0 8px;'>"
+        "<div style='font-size:24px;font-weight:700;color:#1a1917;margin-bottom:6px;'>무엇을 도와드릴까요?</div>"
+        "<div style='font-size:13px;color:#8a8680;'>매체 정책, 광고 운영 기준, 대대행사 질문에 답변합니다</div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    ecols = st.columns(2)
+    for i, (label, text) in enumerate(EXAMPLES):
+        with ecols[i % 2]:
+            if st.button(f"{label}\n{text[:50]}…", key=f"ex_{i}", use_container_width=True):
+                st.session_state["_prefill"] = text
+                st.rerun()
+    st.markdown("<div style='height:16px;'></div>", unsafe_allow_html=True)
+
+else:
+    # 대화 출력
+    for msg in st.session_state.chat_messages:
+        if msg["role"] == "user":
+            st.markdown(
+                f"<div class='msg-user'>"
+                f"<div class='msg-user-bubble'>{msg['content']}</div>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            mode_icon = "🔬" if msg.get("mode") == "정밀 분석 모드" else "🌐"
+            time_str = msg.get("time", "")
+            st.markdown(
+                f"<div class='msg-ai'>"
+                f"<div class='msg-ai-avatar'>🎯</div>"
+                f"<div class='msg-ai-body'>"
+                f"<div class='msg-ai-meta'>AdCS Pro · {mode_icon} {msg.get('mode','기본 모드')} · {time_str}</div>",
+                unsafe_allow_html=True,
+            )
+            with st.container():
+                st.markdown(msg["content"])
+            if msg.get("sources"):
+                src_html = "<div class='msg-ai-sources'><div class='msg-ai-sources-title'>🔗 참고 출처</div>"
+                for i, src in enumerate(msg["sources"], 1):
+                    url_match = re.search(r"(https?://[^\s]+)", src)
+                    if url_match:
+                        url = url_match.group(1)
+                        label = src.replace(url, "").strip().lstrip("-•*0123456789. ") or url
+                        src_html += f"<div style='margin-bottom:3px;font-size:11px;'><b>{i}.</b> <a href='{url}' target='_blank' style='color:#2563eb;'>{label}</a></div>"
+                    else:
+                        src_html += f"<div style='margin-bottom:3px;font-size:11px;'><b>{i}.</b> {src}</div>"
+                src_html += "</div>"
+                st.markdown(src_html, unsafe_allow_html=True)
+            st.markdown("</div></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:4px;'></div>", unsafe_allow_html=True)
+
+# ── 입력창 ─────────────────────────────────────────────────────
+st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='font-size:11px;font-weight:600;color:#8a8680;"
+    "text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;'>"
+    "💬 대대행사 질문을 입력하세요</p>",
+    unsafe_allow_html=True,
 )
 
-# Detected media chips
+prefill = st.session_state.pop("_prefill", "")
+
+question = st.text_area(
+    "질문",
+    value=prefill,
+    height=100,
+    placeholder="예) 네이버 쇼핑 검색광고 최소 입찰가 기준과 노출 조건이 어떻게 되나요?",
+    label_visibility="collapsed",
+    key="chat_input",
+)
+
+# 매체 감지 칩
 if question:
     media = detect_media(question)
     if media:
@@ -778,65 +810,22 @@ if question:
         chips_html += "</div>"
         st.markdown(chips_html, unsafe_allow_html=True)
 
-# ── Action buttons ────────────────────────────────────────────
-col_gen, col_regen, col_clear = st.columns([2, 2, 1])
-
-with col_gen:
-    btn_label = "🌐 답변 생성" if selected_mode == "일반 모드" else "🔬 정밀 답변 생성"
-    generate_clicked = st.button(
-        btn_label,
-        type="primary",
-        use_container_width=True,
-    )
-
+col_send, col_regen, col_clear = st.columns([3, 2, 1])
+with col_send:
+    send_icon = "🌐" if selected_mode == "기본 모드" else "🔬"
+    send_clicked = st.button(f"{send_icon} 답변 생성", type="primary", use_container_width=True)
 with col_regen:
     regen_clicked = False
-    if st.session_state.show_answer:
-        regen_clicked = st.button(
-            "🔄 다른 논리로 답변 생성",
-            type="secondary",
-            use_container_width=True,
-        )
-
+    if st.session_state.chat_messages:
+        regen_clicked = st.button("🔄 다른 논리로 재생성", type="secondary", use_container_width=True)
 with col_clear:
     if st.button("↺ 초기화", use_container_width=True):
-        for k in ["answer", "sources", "gen_count", "current_question",
-                  "conversation", "show_answer"]:
-            st.session_state[k] = [] if k in ("sources", "conversation") else (
-                0 if k == "gen_count" else (False if k == "show_answer" else (None if k == "answer" else ""))
-            )
+        for k in ["chat_messages", "conversation", "gen_count", "current_question"]:
+            st.session_state[k] = [] if k in ("chat_messages", "conversation") else (0 if k == "gen_count" else "")
         st.rerun()
 
-st.markdown("")
 
-# ── Example prompts ───────────────────────────────────────────
-EXAMPLES = [
-    ("🟢 네이버", "네이버 GFA 영상광고 사이즈 정책이 최근 변경됐나요? 현재 지원 포맷과 해상도, 파일 용량 제한을 상세히 알려주세요."),
-    ("🟠 당근", "당근마켓 지역 타겟팅 광고에서 반경 설정 최솟값이 어떻게 되나요? 최근 정책 변경 내용도 포함해 주세요."),
-    ("🟡 카카오", "카카오모먼트 디스플레이 광고 소재 심사 기준 중 텍스트 비율 제한이 있나요? 예외 사항도 설명해 주세요."),
-    ("🔵 구글", "구글 PMax 캠페인 전환 추적 설정 시 주의해야 할 최신 정책 변경 사항이 있나요? Enhanced Conversion 관련 내용도 포함해 주세요."),
-]
-
-if not st.session_state.show_answer:
-    st.markdown(
-        "<p style='font-size:11px;font-weight:600;color:#8a8680;"
-        "text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;'>"
-        "💡 예시 질문</p>",
-        unsafe_allow_html=True,
-    )
-    ecols = st.columns(2)
-    for i, (label, text) in enumerate(EXAMPLES):
-        with ecols[i % 2]:
-            if st.button(f"{label}\n{text[:55]}…", key=f"ex_{i}", use_container_width=True):
-                st.session_state["_example_text"] = text
-                st.rerun()
-
-    if "_example_text" in st.session_state:
-        question = st.session_state.pop("_example_text")
-        st.session_state["_prefill"] = question
-        st.rerun()
-
-# ── Handle generation ─────────────────────────────────────────
+# ── 생성 로직 ──────────────────────────────────────────────────
 def run_generation(q: str, is_regen: bool):
     if not api_key:
         st.error("⚠️ 왼쪽 사이드바에서 OpenAI API Key를 먼저 입력해주세요.")
@@ -851,32 +840,19 @@ def run_generation(q: str, is_regen: bool):
         st.session_state.gen_count = 0
         st.session_state.current_question = q
         st.session_state.conversation = []
-        st.session_state.last_mode = mode
 
     st.session_state.gen_count += 1
 
-    # Loading steps differ by mode
-    if mode == "일반 모드":
-        steps = [
-            "🌐 질문 분석 및 매체 키워드 파악 중...",
-            "📡 최신 매체 공식 정책 검색 중...",
-            "✍️ 팩트 중심 답변 초안 작성 중...",
-            "✅ 출처 정리 및 품질 검토 완료!",
-        ]
-    else:
-        steps = [
-            "🔍 질문 분석 및 매체 감지 중...",
-            "📂 사내 가이드라인 정밀 분석 중...",
-            "🌐 최신 매체 공지사항 검색 중...",
-            "✅ 가이드라인 + 팩트 검증 완료!",
-        ]
+    steps = (
+        ["🌐 매체 키워드 파악 중...", "📡 최신 정책 검색 중...", "✍️ 답변 작성 중...", "✅ 완료!"]
+        if mode == "기본 모드" else
+        ["🔍 매체 감지 중...", "📂 가이드라인 분석 중...", "🌐 최신 공지 검색 중...", "✅ 완료!"]
+    )
 
     with st.status("답변을 생성하는 중...", expanded=True) as status:
         for step in steps[:-1]:
             st.write(step)
-
         guideline = st.session_state.guideline_text if mode == "정밀 분석 모드" else ""
-
         try:
             raw = call_openai(
                 api_key=api_key,
@@ -889,102 +865,45 @@ def run_generation(q: str, is_regen: bool):
             status.update(label="오류 발생", state="error")
             err_msg = str(e)
             if "invalid_api_key" in err_msg or "Incorrect API key" in err_msg:
-                st.error("API Key가 올바르지 않습니다. OpenAI API Key를 다시 확인해 주세요.")
-            elif "429" in err_msg or "quota" in err_msg.lower() or "rate_limit" in err_msg.lower():
-                st.error("⚠️ API 쿼터 한도 초과(429). 잠시 후 다시 시도해 주세요.")
+                st.error("API Key가 올바르지 않습니다.")
+            elif "429" in err_msg or "quota" in err_msg.lower():
+                st.error("⚠️ API 쿼터 초과. 잠시 후 다시 시도해 주세요.")
             else:
-                st.error(f"답변 생성 중 오류가 발생했습니다: {e}")
+                st.error(f"오류: {e}")
             return
-
         st.write(steps[-1])
         status.update(label="답변 생성 완료 ✓", state="complete")
 
     main_text, sources = parse_sources(raw)
+    now_str = datetime.now().strftime("%H:%M")
 
-    st.session_state.answer = main_text
-    st.session_state.sources = sources
-    st.session_state.show_answer = True
+    if not is_regen:
+        st.session_state.chat_messages.append({"role": "user", "content": q})
+    st.session_state.chat_messages.append({
+        "role": "assistant",
+        "content": main_text,
+        "sources": sources,
+        "mode": mode,
+        "time": now_str,
+    })
 
-    user_msg = (
-        f"다른 답변 생성 요청 ({st.session_state.gen_count}회차)" if is_regen else q
-    )
-    st.session_state.conversation.append({"role": "user", "content": user_msg})
+    st.session_state.conversation.append({"role": "user", "content": q if not is_regen else f"재생성 요청 {st.session_state.gen_count}회차"})
     st.session_state.conversation.append({"role": "assistant", "content": raw})
 
     if not is_regen and q not in st.session_state.query_history:
         st.session_state.query_history.append(q)
-
-    # ── 답변 기록 저장 (answer_history) ──────────────────────────
     st.session_state.answer_history.append({
         "question": q,
         "answer": main_text,
         "sources": sources,
         "mode": mode,
         "time": datetime.now().strftime("%m/%d %H:%M"),
-        "gen_count": st.session_state.gen_count,
     })
+    st.rerun()
 
 
-if generate_clicked and question:
+if send_clicked and question:
     run_generation(question, is_regen=False)
 
 if regen_clicked and st.session_state.current_question:
     run_generation(st.session_state.current_question, is_regen=True)
-
-# ── Display answer ────────────────────────────────────────────
-if st.session_state.show_answer and st.session_state.answer:
-    gen_n = st.session_state.gen_count
-    now_str = datetime.now().strftime("%H:%M")
-    last_mode = st.session_state.get("last_mode", selected_mode)
-    is_precise_result = last_mode == "정밀 분석 모드"
-
-    label_txt = "최적 답변" + (f" (재생성 {gen_n}회차)" if gen_n > 1 else "")
-    mode_badge = (
-        "<span class='result-mode-badge badge-precise'>🔬 정밀 분석</span>"
-        if is_precise_result else
-        "<span class='result-mode-badge badge-normal'>🧠 일반 모드</span>"
-    )
-    header_gradient = "linear-gradient(to right, #eff6ff, #fff)" if is_precise_result else "linear-gradient(to right, #f9f8f5, #fff)"
-
-    st.markdown(
-        f"<div class='result-header-bar' style='background:{header_gradient};'>"
-        f"<span class='result-label'>✅ {label_txt}</span>"
-        f"<span style='display:flex;align-items:center;gap:8px;'>{mode_badge}"
-        f"<span class='result-time'>{now_str} 생성</span></span>"
-        f"</div>",
-        unsafe_allow_html=True,
-    )
-
-    with st.container():
-        st.markdown("<div class='result-box-body'>", unsafe_allow_html=True)
-        st.markdown(st.session_state.answer)
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    if st.session_state.sources:
-        st.markdown(
-            "<div class='sources-box'><div class='sources-title'>🔗 참고 출처</div>",
-            unsafe_allow_html=True,
-        )
-        for i, src in enumerate(st.session_state.sources, 1):
-            url_match = re.search(r"(https?://[^\s]+)", src)
-            if url_match:
-                url = url_match.group(1)
-                label = src.replace(url, "").strip().lstrip("-•*0123456789. ") or url
-                st.markdown(f"**{i}.** [{label}]({url})")
-            else:
-                st.markdown(f"**{i}.** {src}")
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("")
-    st.text_area(
-        "📋 답변 복사용 (전체 선택 후 복사)",
-        value=st.session_state.answer + (
-            "\n\n📌 참고 출처:\n" + "\n".join(st.session_state.sources)
-            if st.session_state.sources else ""
-        ),
-        height=100,
-        label_visibility="visible",
-    )
-
-    if gen_n > 1:
-        st.caption(f"총 {gen_n}회 생성됨")
