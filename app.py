@@ -43,6 +43,11 @@ header { visibility: visible !important; }
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
     background: #1a1a2e;
+    min-width: 280px !important;
+    max-width: 320px !important;
+}
+[data-testid="stSidebar"] > div:first-child {
+    min-width: 280px !important;
 }
 [data-testid="stSidebar"] * {
     color: #e8e6df !important;
@@ -440,24 +445,6 @@ def build_system_prompt(question: str, guideline: str, gen_count: int, mode: str
         if gen_count > 1 else ""
     )
 
-    if mode == "일반 모드":
-        return f"""당신은 광고 대행사의 전문 CS 담당자입니다. 대대행사의 기술 질문에 대해 **마케팅 상식과 대행사 응대 노하우**만을 활용해 단 하나의 최적 답변을 제공합니다.
-
-# 일반 모드 원칙
-- 별도 파일 분석이나 실시간 검색 없이, AI가 보유한 광고 업계 지식으로만 답변합니다.
-- 확실하지 않은 수치는 "일반적으로", "통상적으로" 등의 표현으로 명확히 구분하세요.
-- 복수의 답변을 나열하지 않고, 가장 완벽한 단 하나의 답변만 제공합니다.
-- 전문적이되 대대행사 담당자가 이해하기 쉬운 명확한 언어를 사용합니다.
-{regen_note}
-
-# 출력 형식
-- 명확한 구조로 작성 (## 소제목 + 내용)
-- 수치나 정책은 **굵게** 표시
-- 답변 첫 줄: "> 💡 일반 상식 기반의 답변입니다. 정확한 수치는 매체 공식 공지를 확인해 주세요."
-- 어체: 정중하고 전문적인 B2B 커뮤니케이션 스타일
-- 출처 섹션 불필요 (일반 모드에서는 생략)"""
-
-    # ── 정밀 분석 모드 ──
     media_note = (
         f"질문에 {', '.join(label for _, label in media_found)} 매체가 언급되어 있습니다. "
         "해당 매체의 최신 공식 정책과 공지사항을 기반으로 답변하고, "
@@ -465,21 +452,44 @@ def build_system_prompt(question: str, guideline: str, gen_count: int, mode: str
         if media_found else
         "특정 매체가 명시적으로 언급되지 않았습니다. 일반적인 광고 운영 기준으로 답변하되 관련 출처를 포함하세요."
     )
+
+    if mode == "일반 모드":
+        return f"""당신은 광고 대행사의 전문 CS 담당자입니다. 대대행사의 기술 질문에 대해 **최신 매체 공식 정책과 팩트**를 중심으로 단 하나의 최적 답변을 제공합니다.
+
+# 기본 모드 원칙
+- 광고 매체(네이버, 카카오, 당근마켓, 구글, 메타 등)의 최신 정책과 스펙을 정확히 반영합니다.
+- 모든 수치와 정책 기준은 반드시 공식 출처와 함께 제공합니다.
+- 복수의 답변을 나열하지 않고, 가장 완벽한 단 하나의 답변만 제공합니다.
+- 불확실한 정보는 절대 단정하지 않고, 공식 출처 확인을 안내합니다.
+- 전문적이되 대대행사 담당자가 이해하기 쉬운 명확한 언어를 사용합니다.
+
+# 매체 감지 결과
+{media_note}
+{regen_note}
+
+# 출력 형식
+- 명확한 구조로 작성 (## 소제목 + 내용)
+- 수치나 정책은 **굵게** 표시
+- 답변 첫 줄: "> 🌐 최신 매체 정책 기반의 팩트 중심 답변입니다."
+- 답변 마지막에 "📌 참고 출처:" 섹션 반드시 포함 (공식 URL 형식)
+- 어체: 정중하고 전문적인 B2B 커뮤니케이션 스타일"""
+
+    # ── 정밀 분석 모드 ──
     guideline_note = (
-        f"다음은 회사 가이드라인 내용입니다. 이 말투와 기준에 맞게 답변하세요:\n\n{guideline}"
+        f"다음은 회사 가이드라인 내용입니다. 이 말투·기준·단가를 최우선으로 적용하세요:\n\n{guideline}"
         if guideline else
-        "별도 가이드라인 없음. 전문적이고 친절한 B2B 광고 대행사 어체를 사용하세요."
+        "업로드된 가이드라인 없음. 일반 광고 업계 기준으로 답변하되 출처를 반드시 포함하세요."
     )
 
-    return f"""당신은 광고 대행사의 전문 CS 담당자입니다. 대대행사의 날카로운 기술 질문에 대해 **가이드라인과 최신 매체 정책**을 100% 반영한 팩트 중심의 단 하나의 최적 답변을 제공합니다.
+    return f"""당신은 광고 대행사의 전문 CS 담당자입니다. 대대행사의 날카로운 기술 질문에 대해 **업로드된 사내 가이드라인 + 최신 매체 공식 정책**을 100% 반영한 팩트 중심의 단 하나의 최적 답변을 제공합니다.
 
 # 정밀 분석 모드 원칙
-- 광고 매체(네이버, 카카오, 당근마켓, 구글, 메타 등)의 최신 정책과 스펙을 정확히 반영합니다.
-- 사내 가이드라인의 말투, 기준, 단가를 우선 적용합니다.
-- 복수의 답변을 나열하지 않고, 가장 완벽한 단 하나의 답변만 제공합니다.
+- 사내 가이드라인의 말투·기준·단가를 일반 매체 정책보다 우선 적용합니다.
+- 가이드라인에 없는 내용은 최신 매체 공식 정책으로 보완합니다.
 - 모든 수치와 정책 기준은 반드시 출처와 함께 제공합니다.
+- 복수의 답변을 나열하지 않고, 가장 완벽한 단 하나의 답변만 제공합니다.
 
-# 가이드라인
+# 사내 가이드라인
 {guideline_note}
 
 # 매체 감지 결과
@@ -489,9 +499,8 @@ def build_system_prompt(question: str, guideline: str, gen_count: int, mode: str
 # 출력 형식
 - 명확한 구조로 작성 (## 소제목 + 내용)
 - 수치나 정책은 **굵게** 표시
-- 답변 마지막에 "📌 참고 출처:" 섹션 반드시 포함
-- 출처는 실제 공식 URL 형식으로 작성
-- 답변 첫 줄: "> 🔬 가이드라인 및 실시간 검색 기반의 정밀 답변입니다."
+- 답변 첫 줄: "> 🔬 사내 가이드라인 + 최신 매체 정책 기반의 정밀 답변입니다."
+- 답변 마지막에 "📌 참고 출처:" 섹션 반드시 포함 (공식 URL 형식)
 - 어체: 정중하고 전문적인 B2B 커뮤니케이션 스타일"""
 
 
@@ -725,11 +734,12 @@ if selected_mode != st.session_state.analysis_mode:
 if selected_mode == "일반 모드":
     st.markdown(
         "<div class='mode-info mode-info-normal'>"
-        "<div class='mode-info-icon'>🧠</div>"
+        "<div class='mode-info-icon'>🌐</div>"
         "<div>"
-        "<div class='mode-info-title'>일반 모드"
+        "<div class='mode-info-title'>기본 모드"
         "<span class='mode-tag tag-free'>GPT-4o</span></div>"
-        "가이드라인 파일·실시간 검색 없이 AI의 마케팅 상식과 대행사 응대 노하우로 즉시 답변합니다."
+        "최신 매체 공식 정책을 실시간 반영한 <b>팩트 중심·출처 포함</b> 답변을 제공합니다. "
+        "가이드라인 파일 없이도 정확한 정책 기반으로 즉시 답변합니다."
         "</div></div>",
         unsafe_allow_html=True,
     )
@@ -739,9 +749,10 @@ else:
         "<div class='mode-info-icon'>🔬</div>"
         "<div>"
         "<div class='mode-info-title'>정밀 분석 모드"
-        "<span class='mode-tag tag-paid'>건당 ~10원</span></div>"
-        "업로드된 가이드라인을 정밀 분석하고 최신 매체 공지를 실시간 반영합니다. "
-        "팩트 중심의 출처 포함 답변이 필요할 때 사용하세요. <b>좌측에서 가이드라인 파일을 업로드하세요.</b>"
+        "<span class='mode-tag tag-paid'>가이드라인 우선</span></div>"
+        "기본 모드의 팩트·출처 답변에 <b>업로드한 사내 가이드라인을 최우선 적용</b>합니다. "
+        "회사 말투·단가·기준이 반영된 답변이 필요할 때 사용하세요. "
+        "<b>좌측에서 가이드라인 파일을 업로드하세요.</b>"
         "</div></div>",
         unsafe_allow_html=True,
     )
@@ -771,7 +782,7 @@ if question:
 col_gen, col_regen, col_clear = st.columns([2, 2, 1])
 
 with col_gen:
-    btn_label = "🧠 일반 답변 생성" if selected_mode == "일반 모드" else "🔬 정밀 답변 생성"
+    btn_label = "🌐 답변 생성" if selected_mode == "일반 모드" else "🔬 정밀 답변 생성"
     generate_clicked = st.button(
         btn_label,
         type="primary",
@@ -847,17 +858,17 @@ def run_generation(q: str, is_regen: bool):
     # Loading steps differ by mode
     if mode == "일반 모드":
         steps = [
-            "🧠 질문 분석 및 매체 키워드 파악 중...",
-            "📚 마케팅 상식 기반 논리 구성 중...",
-            "✍️ 최적 답변 초안 작성 중...",
-            "✅ 품질 검토 완료!",
+            "🌐 질문 분석 및 매체 키워드 파악 중...",
+            "📡 최신 매체 공식 정책 검색 중...",
+            "✍️ 팩트 중심 답변 초안 작성 중...",
+            "✅ 출처 정리 및 품질 검토 완료!",
         ]
     else:
         steps = [
             "🔍 질문 분석 및 매체 감지 중...",
-            "📂 가이드라인 파일 정밀 분석 중...",
+            "📂 사내 가이드라인 정밀 분석 중...",
             "🌐 최신 매체 공지사항 검색 중...",
-            "✅ 팩트 검증 및 출처 정리 완료!",
+            "✅ 가이드라인 + 팩트 검증 완료!",
         ]
 
     with st.status("답변을 생성하는 중...", expanded=True) as status:
