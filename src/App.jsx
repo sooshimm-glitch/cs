@@ -116,9 +116,11 @@ export default function App() {
   const [stepIdx, setStepIdx] = useState(0);
   const [copied, setCopied] = useState(null);
   const [guideline, setGuideline] = useState('');
+  const [waitingFile, setWaitingFile] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const stepTimer = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('adcs_keys');
@@ -144,7 +146,70 @@ export default function App() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  const runSteps = useCallback(() => {
+  const switchMode = (m) => {
+    setMode(m);
+    if (m === '정밀') {
+      setGuideline('');
+      setWaitingFile(true);
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        role: 'ai',
+        text: '🔬 정밀 분석 모드로 전환됩니다.\n\n사내 가이드라인 파일을 업로드해주세요. (PDF, DOCX, XLSX, TXT 지원)\n\n파일을 업로드하면 해당 내용을 최우선으로 적용하여 답변드립니다.',
+        sources: [],
+        fileRequest: true,
+      }]);
+    } else {
+      setWaitingFile(false);
+      setGuideline('');
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        role: 'ai',
+        text: '🌐 기본 모드로 전환됩니다. 매체 공식 정책 기반으로 답변드립니다.',
+        sources: [],
+      }]);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const name = file.name.toLowerCase();
+    let text = '';
+    try {
+      if (name.endsWith('.txt')) {
+        text = await file.text();
+      } else if (name.endsWith('.pdf')) {
+        text = '[PDF 파일 업로드됨 — 텍스트 추출은 서버 필요]';
+      } else if (name.endsWith('.docx')) {
+        text = '[DOCX 파일 업로드됨]';
+      } else if (name.endsWith('.xlsx')) {
+        text = '[XLSX 파일 업로드됨]';
+      } else {
+        text = await file.text();
+      }
+      const preview = text.slice(0, 200);
+      setGuideline(text.slice(0, 6000));
+      setWaitingFile(false);
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        role: 'user',
+        text: `📎 ${file.name} 업로드됨`,
+        sources: [],
+      }, {
+        id: Date.now() + 1,
+        role: 'ai',
+        text: `✅ **${file.name}** 파일을 받았습니다!\n\n> ${preview}${text.length > 200 ? '…' : ''}\n\n이제 가이드라인을 적용하여 답변드립니다. 질문을 입력해주세요!`,
+        sources: [],
+      }]);
+    } catch (err) {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        role: 'ai',
+        text: `⚠️ 파일 읽기 오류: ${err.message}`,
+        sources: [],
+      }]);
+    }
+  };
     setStepIdx(0);
     let i = 0;
     stepTimer.current = setInterval(() => {
@@ -289,7 +354,7 @@ export default function App() {
               <button
                 key={m}
                 style={{ ...S.modeBtn, ...(mode === m ? S.modeBtnActive : {}) }}
-                onClick={() => setMode(m)}
+                onClick={() => switchMode(m)}
               >
                 {m === '기본' ? '🌐' : '🔬'} {m}
               </button>
@@ -307,6 +372,23 @@ export default function App() {
             <div style={{ maxWidth: '72%' }}>
               <div style={{ ...S.bubble, ...(msg.role === 'user' ? S.bubbleUser : S.bubbleAi), ...(msg.error ? S.bubbleErr : {}) }}>
                 <MsgContent text={msg.text} />
+                {msg.fileRequest && waitingFile && (
+                  <div style={{ marginTop: 12 }}>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.txt,.xlsx,.xls,.docx,.doc"
+                      style={{ display: 'none' }}
+                      onChange={handleFileUpload}
+                    />
+                    <button
+                      style={{ background: '#2563ff', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Noto Sans KR, sans-serif' }}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      📎 파일 업로드
+                    </button>
+                  </div>
+                )}
               </div>
               {/* 복사 버튼 (AI 메시지만) */}
               {msg.role === 'ai' && !msg.error && (
@@ -387,11 +469,11 @@ function MsgContent({ text }) {
   return (
     <div style={{ lineHeight: 1.75, fontSize: 13.5 }}>
       {lines.map((line, i) => {
-        if (line.startsWith('## ')) return <div key={i} style={{ fontWeight: 700, fontSize: 14, color: '#7eb8ff', marginTop: i > 0 ? 14 : 0, marginBottom: 4 }}>{line.slice(3)}</div>;
-        if (line.startsWith('# '))  return <div key={i} style={{ fontWeight: 700, fontSize: 15, color: '#a8d4ff', marginTop: i > 0 ? 16 : 0, marginBottom: 6 }}>{line.slice(2)}</div>;
-        if (line.startsWith('> '))  return <div key={i} style={{ borderLeft: '3px solid #2e3a55', paddingLeft: 10, color: '#8899bb', fontStyle: 'italic', margin: '6px 0', fontSize: 12 }}>{line.slice(2)}</div>;
-        if (line.startsWith('- ') || line.startsWith('• ')) return <div key={i} style={{ paddingLeft: 14, position: 'relative', marginBottom: 2 }}><span style={{ position: 'absolute', left: 0, color: '#5a7aaa' }}>•</span>{renderInline(line.slice(2))}</div>;
-        if (/^\d+\.\s/.test(line)) return <div key={i} style={{ paddingLeft: 18, position: 'relative', marginBottom: 2 }}><span style={{ position: 'absolute', left: 0, color: '#5a7aaa' }}>{line.match(/^\d+/)[0]}.</span>{renderInline(line.replace(/^\d+\.\s/, ''))}</div>;
+        if (line.startsWith('## ')) return <div key={i} style={{ fontWeight: 700, fontSize: 14, color: '#f0f0f0', marginTop: i > 0 ? 14 : 0, marginBottom: 4 }}>{line.slice(3)}</div>;
+        if (line.startsWith('# '))  return <div key={i} style={{ fontWeight: 700, fontSize: 15, color: '#f0f0f0', marginTop: i > 0 ? 16 : 0, marginBottom: 6 }}>{line.slice(2)}</div>;
+        if (line.startsWith('> '))  return <div key={i} style={{ borderLeft: '3px solid #333', paddingLeft: 10, color: '#888', fontStyle: 'italic', margin: '6px 0', fontSize: 12 }}>{line.slice(2)}</div>;
+        if (line.startsWith('- ') || line.startsWith('• ')) return <div key={i} style={{ paddingLeft: 14, position: 'relative', marginBottom: 2 }}><span style={{ position: 'absolute', left: 0, color: '#555' }}>•</span>{renderInline(line.slice(2))}</div>;
+        if (/^\d+\.\s/.test(line)) return <div key={i} style={{ paddingLeft: 18, position: 'relative', marginBottom: 2 }}><span style={{ position: 'absolute', left: 0, color: '#555' }}>{line.match(/^\d+/)[0]}.</span>{renderInline(line.replace(/^\d+\.\s/, ''))}</div>;
         if (line === '') return <div key={i} style={{ height: 6 }} />;
         return <div key={i} style={{ marginBottom: 2 }}>{renderInline(line)}</div>;
       })}
@@ -403,7 +485,7 @@ function renderInline(text) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((p, i) =>
     p.startsWith('**') && p.endsWith('**')
-      ? <strong key={i} style={{ color: '#a8d4ff', fontWeight: 600 }}>{p.slice(2, -2)}</strong>
+      ? <strong key={i} style={{ color: '#e8e8e8', fontWeight: 600 }}>{p.slice(2, -2)}</strong>
       : p
   );
 }
@@ -476,18 +558,18 @@ const S = {
   userAvatar: { width:28, height:28, background:'#222', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:600, color:'#666', flexShrink:0, marginBottom:2, border:'1px solid #2a2a2a' },
   bubble:     { padding:'10px 14px', borderRadius:14, fontSize:13.5, lineHeight:1.7, wordBreak:'keep-all' },
   bubbleUser: { background:'#2563ff', color:'#fff', borderRadius:'14px 14px 4px 14px' },
-  bubbleAi:   { background:'#1a1f2e', border:'1px solid #2e3a55', color:'#e8eaf0', borderRadius:'4px 14px 14px 14px' },
+  bubbleAi:   { background:'#161616', border:'1px solid #222', color:'#d0d0d0', borderRadius:'4px 14px 14px 14px' },
   bubbleErr:  { background:'#1a0a0a', border:'1px solid #3a1a1a', color:'#f87171' },
   msgActions: { display:'flex', justifyContent:'flex-start', marginTop:4, paddingLeft:2 },
   copyBtn:    { background:'transparent', border:'1px solid #2a2a2a', borderRadius:6, padding:'3px 10px', fontSize:11, color:'#555', cursor:'pointer', fontFamily:'Noto Sans KR, sans-serif', transition:'all 0.15s' },
-  stepText:   { fontSize:11, color:'#7eb8ff', fontStyle:'italic' },
+  stepText:   { fontSize:11, color:'#555', fontStyle:'italic' },
 
   // Sources
-  sourcesWrap:  { marginTop:6, background:'#111827', border:'1px solid #2e3a55', borderRadius:8, padding:'8px 12px' },
-  sourcesLabel: { fontSize:10, fontWeight:600, color:'#5a7aaa', textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:6 },
-  sourceItem:   { display:'flex', gap:6, alignItems:'baseline', padding:'3px 0', borderBottom:'1px solid #1e2a40' },
-  sourceNum:    { fontSize:10, color:'#5a7aaa', flexShrink:0, minWidth:14 },
-  sourceLink:   { fontSize:11, color:'#7eb8ff', textDecoration:'none', wordBreak:'break-all', lineHeight:1.5 },
+  sourcesWrap:  { marginTop:6, background:'#0e0e0e', border:'1px solid #1e1e1e', borderRadius:8, padding:'8px 12px' },
+  sourcesLabel: { fontSize:10, fontWeight:600, color:'#444', textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:6 },
+  sourceItem:   { display:'flex', gap:6, alignItems:'baseline', padding:'3px 0', borderBottom:'1px solid #161616' },
+  sourceNum:    { fontSize:10, color:'#444', flexShrink:0, minWidth:14 },
+  sourceLink:   { fontSize:11, color:'#4f8ef7', textDecoration:'none', wordBreak:'break-all', lineHeight:1.5 },
 
   // Input
   inputArea:  { padding:'10px 16px 16px', background:'#0f0f0f', borderTop:'1px solid #1a1a1a', flexShrink:0 },
