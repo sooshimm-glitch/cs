@@ -210,6 +210,8 @@ export default function App() {
       }]);
     }
   };
+
+  const runSteps = useCallback(() => {
     setStepIdx(0);
     let i = 0;
     stepTimer.current = setInterval(() => {
