@@ -387,11 +387,11 @@ function MsgContent({ text }) {
   return (
     <div style={{ lineHeight: 1.75, fontSize: 13.5 }}>
       {lines.map((line, i) => {
-        if (line.startsWith('## ')) return <div key={i} style={{ fontWeight: 700, fontSize: 14, color: '#f0f0f0', marginTop: i > 0 ? 14 : 0, marginBottom: 4 }}>{line.slice(3)}</div>;
-        if (line.startsWith('# '))  return <div key={i} style={{ fontWeight: 700, fontSize: 15, color: '#f0f0f0', marginTop: i > 0 ? 16 : 0, marginBottom: 6 }}>{line.slice(2)}</div>;
-        if (line.startsWith('> '))  return <div key={i} style={{ borderLeft: '3px solid #333', paddingLeft: 10, color: '#888', fontStyle: 'italic', margin: '6px 0', fontSize: 12 }}>{line.slice(2)}</div>;
-        if (line.startsWith('- ') || line.startsWith('• ')) return <div key={i} style={{ paddingLeft: 14, position: 'relative', marginBottom: 2 }}><span style={{ position: 'absolute', left: 0, color: '#555' }}>•</span>{renderInline(line.slice(2))}</div>;
-        if (/^\d+\.\s/.test(line)) return <div key={i} style={{ paddingLeft: 18, position: 'relative', marginBottom: 2 }}><span style={{ position: 'absolute', left: 0, color: '#555' }}>{line.match(/^\d+/)[0]}.</span>{renderInline(line.replace(/^\d+\.\s/, ''))}</div>;
+        if (line.startsWith('## ')) return <div key={i} style={{ fontWeight: 700, fontSize: 14, color: '#7eb8ff', marginTop: i > 0 ? 14 : 0, marginBottom: 4 }}>{line.slice(3)}</div>;
+        if (line.startsWith('# '))  return <div key={i} style={{ fontWeight: 700, fontSize: 15, color: '#a8d4ff', marginTop: i > 0 ? 16 : 0, marginBottom: 6 }}>{line.slice(2)}</div>;
+        if (line.startsWith('> '))  return <div key={i} style={{ borderLeft: '3px solid #2e3a55', paddingLeft: 10, color: '#8899bb', fontStyle: 'italic', margin: '6px 0', fontSize: 12 }}>{line.slice(2)}</div>;
+        if (line.startsWith('- ') || line.startsWith('• ')) return <div key={i} style={{ paddingLeft: 14, position: 'relative', marginBottom: 2 }}><span style={{ position: 'absolute', left: 0, color: '#5a7aaa' }}>•</span>{renderInline(line.slice(2))}</div>;
+        if (/^\d+\.\s/.test(line)) return <div key={i} style={{ paddingLeft: 18, position: 'relative', marginBottom: 2 }}><span style={{ position: 'absolute', left: 0, color: '#5a7aaa' }}>{line.match(/^\d+/)[0]}.</span>{renderInline(line.replace(/^\d+\.\s/, ''))}</div>;
         if (line === '') return <div key={i} style={{ height: 6 }} />;
         return <div key={i} style={{ marginBottom: 2 }}>{renderInline(line)}</div>;
       })}
@@ -403,7 +403,7 @@ function renderInline(text) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((p, i) =>
     p.startsWith('**') && p.endsWith('**')
-      ? <strong key={i} style={{ color: '#e8e8e8', fontWeight: 600 }}>{p.slice(2, -2)}</strong>
+      ? <strong key={i} style={{ color: '#a8d4ff', fontWeight: 600 }}>{p.slice(2, -2)}</strong>
       : p
   );
 }
@@ -476,18 +476,18 @@ const S = {
   userAvatar: { width:28, height:28, background:'#222', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:600, color:'#666', flexShrink:0, marginBottom:2, border:'1px solid #2a2a2a' },
   bubble:     { padding:'10px 14px', borderRadius:14, fontSize:13.5, lineHeight:1.7, wordBreak:'keep-all' },
   bubbleUser: { background:'#2563ff', color:'#fff', borderRadius:'14px 14px 4px 14px' },
-  bubbleAi:   { background:'#161616', border:'1px solid #222', color:'#d0d0d0', borderRadius:'4px 14px 14px 14px' },
+  bubbleAi:   { background:'#1a1f2e', border:'1px solid #2e3a55', color:'#e8eaf0', borderRadius:'4px 14px 14px 14px' },
   bubbleErr:  { background:'#1a0a0a', border:'1px solid #3a1a1a', color:'#f87171' },
   msgActions: { display:'flex', justifyContent:'flex-start', marginTop:4, paddingLeft:2 },
   copyBtn:    { background:'transparent', border:'1px solid #2a2a2a', borderRadius:6, padding:'3px 10px', fontSize:11, color:'#555', cursor:'pointer', fontFamily:'Noto Sans KR, sans-serif', transition:'all 0.15s' },
-  stepText:   { fontSize:11, color:'#555', fontStyle:'italic' },
+  stepText:   { fontSize:11, color:'#7eb8ff', fontStyle:'italic' },
 
   // Sources
-  sourcesWrap:  { marginTop:6, background:'#0e0e0e', border:'1px solid #1e1e1e', borderRadius:8, padding:'8px 12px' },
-  sourcesLabel: { fontSize:10, fontWeight:600, color:'#444', textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:6 },
-  sourceItem:   { display:'flex', gap:6, alignItems:'baseline', padding:'3px 0', borderBottom:'1px solid #161616' },
-  sourceNum:    { fontSize:10, color:'#444', flexShrink:0, minWidth:14 },
-  sourceLink:   { fontSize:11, color:'#4f8ef7', textDecoration:'none', wordBreak:'break-all', lineHeight:1.5 },
+  sourcesWrap:  { marginTop:6, background:'#111827', border:'1px solid #2e3a55', borderRadius:8, padding:'8px 12px' },
+  sourcesLabel: { fontSize:10, fontWeight:600, color:'#5a7aaa', textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:6 },
+  sourceItem:   { display:'flex', gap:6, alignItems:'baseline', padding:'3px 0', borderBottom:'1px solid #1e2a40' },
+  sourceNum:    { fontSize:10, color:'#5a7aaa', flexShrink:0, minWidth:14 },
+  sourceLink:   { fontSize:11, color:'#7eb8ff', textDecoration:'none', wordBreak:'break-all', lineHeight:1.5 },
 
   // Input
   inputArea:  { padding:'10px 16px 16px', background:'#0f0f0f', borderTop:'1px solid #1a1a1a', flexShrink:0 },
