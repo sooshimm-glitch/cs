@@ -51,13 +51,13 @@ async function callAI(apiKey, tavilyKey, question, guideline, mode) {
   let system = `당신은 광고 대행사의 전문 CS 담당자입니다.\n\n# 원칙\n- 광고 매체의 최신 정책과 스펙을 정확히 반영합니다.\n- 모든 수치와 정책 기준은 반드시 공식 출처와 함께 제공합니다.\n- 불확실한 정보는 절대 단정하지 않습니다.\n\n답변 첫 줄: "> ${modeIcon} ${modeDesc}입니다."\n\n출처 섹션(📌 참고 출처)은 절대 포함하지 마세요. 출처는 시스템이 자동 처리합니다.`;
   if (mode === '정밀' && guideline) system += `\n\n# 사내 가이드라인 (최우선 적용)\n${guideline}`;
   if (searchCtx) system += `\n\n# 실시간 검색 결과\n${searchCtx}`;
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 2000, system, messages: [{ role: 'user', content: question }] }),
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: 'gpt-4o', max_tokens: 2000, temperature: 0.3, messages: [{ role: 'system', content: system }, { role: 'user', content: question }] }),
   });
   const data = await res.json();
-  const text = data.content?.[0]?.text || '오류가 발생했습니다.';
+  const text = data.choices?.[0]?.message?.content || '오류가 발생했습니다.';
   return { text: text.replace(/📌\s*참고 출처.*$/s, '').trim(), sources };
 }
 
