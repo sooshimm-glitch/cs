@@ -120,12 +120,14 @@ export default function App() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
 
   const loadHistory = async (uid) => {
-    const { data } = await supabase.from('conversations').select('id, messages, created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(20);
+    const { data, error } = await supabase.from('conversations').select('id, messages, created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(20);
+    if (error) { console.error('loadHistory 오류:', error); return; }
     if (data) setHistoryList(data);
   };
 
   const loadGuidelines = async (uid) => {
-    const { data } = await supabase.from('guidelines').select('id, filename, content, created_at').eq('user_id', uid).order('created_at', { ascending: true });
+    const { data, error } = await supabase.from('guidelines').select('id, filename, content, created_at').eq('user_id', uid).order('created_at', { ascending: true });
+    if (error) { console.error('loadGuidelines 오류:', error); return; }
     if (data && data.length > 0) {
       setGuidelineFiles(data);
       setGuideline(data.map(f => `=== ${f.filename} ===\n${f.content}`).join('\n\n'));
@@ -133,7 +135,8 @@ export default function App() {
   };
 
   const deleteGuideline = async (id) => {
-    await supabase.from('guidelines').delete().eq('id', id);
+    const { error } = await supabase.from('guidelines').delete().eq('id', id);
+    if (error) { console.error('deleteGuideline 오류:', error); return; }
     const updated = guidelineFiles.filter(f => f.id !== id);
     setGuidelineFiles(updated);
     setGuideline(updated.map(f => `=== ${f.filename} ===\n${f.content}`).join('\n\n'));
@@ -142,10 +145,12 @@ export default function App() {
   const saveConversation = useCallback(async (msgs, cid) => {
     if (!user) return cid;
     if (cid) {
-      await supabase.from('conversations').update({ messages: msgs, updated_at: new Date().toISOString() }).eq('id', cid);
+      const { error } = await supabase.from('conversations').update({ messages: msgs, updated_at: new Date().toISOString() }).eq('id', cid);
+      if (error) console.error('update 오류:', error);
       return cid;
     } else {
-      const { data } = await supabase.from('conversations').insert({ user_id: user.id, messages: msgs }).select('id').single();
+      const { data, error } = await supabase.from('conversations').insert({ user_id: user.id, messages: msgs }).select('id').single();
+      if (error) console.error('insert 오류:', error);
       return data?.id;
     }
   }, [user]);
