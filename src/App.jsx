@@ -328,12 +328,23 @@ export default function App() {
   // ── 채팅 화면 ──
   return (
     <div style={S.chatWrap}>
-      <div style={S.header}>
-        <div style={S.headerLeft}>
+      {/* 왼쪽 사이드바 */}
+      <div style={S.sidebar}>
+        {/* 로고 */}
+        <div style={S.sidebarHeader}>
           <span style={S.logoBox}>A</span>
-          <div><div style={S.headerTitle}>AdCS Pro</div><div style={S.headerSub}><span style={{ color:'#22c55e', marginRight:4 }}>●</span>{user.user_metadata?.name || user.email}</div></div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:'#f0f0f0' }}>AdCS Pro</div>
+            <div style={{ fontSize:10, color:'#555' }}>{user.user_metadata?.name || user.email}</div>
+          </div>
         </div>
-        <div style={S.headerRight}>
+
+        {/* 새 대화 버튼 */}
+        <button style={S.newChatBtn} onClick={newChat}>✏️ 새 대화</button>
+
+        {/* 모드 토글 */}
+        <div style={{ padding:'0 10px', marginBottom:8 }}>
+          <div style={{ fontSize:10, fontWeight:600, color:'#444', textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:6 }}>모드</div>
           <div style={S.modeWrap}>
             {['기본','정밀'].map(m => (
               <button key={m} style={{ ...S.modeBtn, ...(mode===m ? S.modeBtnActive : {}) }} onClick={() => switchMode(m)}>
@@ -341,52 +352,65 @@ export default function App() {
               </button>
             ))}
           </div>
-          <button style={S.iconBtn} title="가이드라인 파일" onClick={() => setShowGuidelineList(g => !g)}>📂</button>
-          <button style={S.iconBtn} title="대화 기록" onClick={() => setShowHistory(h => !h)}>🕐</button>
-          <button style={S.iconBtn} title="새 대화" onClick={newChat}>✏️</button>
-          <button style={S.iconBtn} title="로그아웃" onClick={logout}>⏏️</button>
         </div>
-      </div>
 
-      {/* 가이드라인 파일 목록 패널 */}
-      {showGuidelineList && (
-        <div style={S.histPanel}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-            <div style={{ fontSize:12, fontWeight:600, color:'#888' }}>📂 적용 중인 가이드라인 ({guidelineFiles.length}개)</div>
-            <button style={{ background:'#1a1f2e', border:'1px solid #2e3a55', borderRadius:6, padding:'3px 10px', fontSize:11, color:'#7eb8ff', cursor:'pointer', fontFamily:'Noto Sans KR, sans-serif' }}
-              onClick={() => { setWaitingFile(true); setShowGuidelineList(false); switchMode('정밀'); }}>+ 파일 추가</button>
+        {/* 가이드라인 파일 */}
+        <div style={{ padding:'0 10px', marginBottom:8 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+            <div style={{ fontSize:10, fontWeight:600, color:'#444', textTransform:'uppercase', letterSpacing:'0.8px' }}>가이드라인 ({guidelineFiles.length})</div>
+            <button style={{ background:'transparent', border:'1px solid #2e3a55', borderRadius:5, padding:'2px 7px', fontSize:10, color:'#7eb8ff', cursor:'pointer' }}
+              onClick={() => { switchMode('정밀'); setWaitingFile(true); }}>+ 추가</button>
           </div>
-          {guidelineFiles.length === 0 && <div style={{ fontSize:12, color:'#444' }}>저장된 가이드라인이 없습니다</div>}
-          {guidelineFiles.map(f => (
-            <div key={f.id} style={{ ...S.histItem, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div>
-                <div style={{ fontSize:12, color:'#ccc' }}>📄 {f.filename}</div>
-                <div style={{ fontSize:10, color:'#555' }}>{new Date(f.created_at).toLocaleDateString('ko-KR')}</div>
+          {guidelineFiles.length === 0
+            ? <div style={{ fontSize:11, color:'#333' }}>없음</div>
+            : guidelineFiles.map(f => (
+              <div key={f.id} style={S.sideFileItem}>
+                <span style={{ fontSize:11, color:'#888', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>📄 {f.filename}</span>
+                <button style={{ background:'transparent', border:'none', color:'#555', cursor:'pointer', fontSize:12, padding:'0 2px', flexShrink:0 }} onClick={() => deleteGuideline(f.id)}>✕</button>
               </div>
-              <button style={{ background:'transparent', border:'1px solid #3a1a1a', borderRadius:6, padding:'2px 8px', fontSize:11, color:'#f87171', cursor:'pointer' }} onClick={() => deleteGuideline(f.id)}>삭제</button>
-            </div>
-          ))}
+            ))
+          }
         </div>
-      )}
 
-      {/* 대화 기록 패널 */}
-      {showHistory && (
-        <div style={S.histPanel}>
-          <div style={{ fontSize:12, fontWeight:600, color:'#888', marginBottom:10 }}>대화 기록</div>
-          {historyList.length === 0 && <div style={{ fontSize:12, color:'#444' }}>저장된 대화가 없습니다</div>}
+        <div style={{ borderTop:'1px solid #1e1e1e', margin:'4px 0 8px' }} />
+
+        {/* 대화 기록 */}
+        <div style={{ padding:'0 10px', flex:1, overflowY:'auto' }}>
+          <div style={{ fontSize:10, fontWeight:600, color:'#444', textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:8 }}>대화 기록</div>
+          {historyList.length === 0 && <div style={{ fontSize:11, color:'#333' }}>없음</div>}
           {historyList.map(conv => {
             const first = conv.messages?.find(m => m.role === 'user');
-            const preview = first?.text?.slice(0, 40) || '대화';
-            const date = new Date(conv.created_at).toLocaleDateString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+            const preview = first?.text?.slice(0, 30) || '대화';
+            const date = new Date(conv.created_at).toLocaleDateString('ko-KR', { month:'short', day:'numeric' });
+            const isActive = convId === conv.id;
             return (
-              <div key={conv.id} style={S.histItem} onClick={() => loadConv(conv)}>
-                <div style={{ fontSize:12, color:'#ccc', marginBottom:2 }}>{preview}…</div>
-                <div style={{ fontSize:10, color:'#555' }}>{date}</div>
+              <div key={conv.id} style={{ ...S.histItem, ...(isActive ? { background:'#1a1f2e', borderColor:'#2e3a55' } : {}) }} onClick={() => loadConv(conv)}>
+                <div style={{ fontSize:12, color: isActive ? '#a8d4ff' : '#bbb', marginBottom:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{preview}</div>
+                <div style={{ fontSize:10, color:'#444' }}>{date}</div>
               </div>
             );
           })}
         </div>
-      )}
+
+        {/* 하단 로그아웃 */}
+        <div style={{ padding:'10px', borderTop:'1px solid #1e1e1e' }}>
+          <button style={{ width:'100%', background:'transparent', border:'1px solid #222', borderRadius:8, padding:'7px 0', fontSize:12, color:'#555', cursor:'pointer', fontFamily:'Noto Sans KR, sans-serif' }} onClick={logout}>로그아웃</button>
+        </div>
+      </div>
+
+      {/* 오른쪽 채팅 영역 */}
+      <div style={S.chatMain}>
+        {/* 헤더 */}
+        <div style={S.header}>
+          <div style={S.headerLeft}>
+            <div style={{ fontSize:13, fontWeight:600, color:'#e0e0e0' }}>
+              {mode === '정밀' ? '🔬 정밀 분석 모드' : '🌐 기본 모드'}
+            </div>
+          </div>
+          <div style={S.headerRight}>
+            <button style={S.iconBtn} title="새 대화" onClick={newChat}>✏️</button>
+          </div>
+        </div>
 
       <div style={S.msgArea}>
         {messages.map(msg => (
@@ -447,6 +471,7 @@ export default function App() {
           </button>
         </div>
       </div>
+      </div>{/* chatMain 닫기 */}
     </div>
   );
 }
@@ -512,20 +537,29 @@ const S = {
   inputHint: { fontSize:11, color:'#444', marginTop:2 },
   link:      { color:'#4f8ef7', textDecoration:'none' },
   startBtn:  { background:'#2563ff', color:'#fff', border:'none', borderRadius:10, padding:'12px 0', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:'Noto Sans KR, sans-serif' },
-  chatWrap:  { display:'flex', flexDirection:'column', height:'100vh', background:'#0a0a0a' },
-  header:    { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', background:'#0f0f0f', borderBottom:'1px solid #1e1e1e', flexShrink:0 },
+
+  // 전체 레이아웃
+  chatWrap:  { display:'flex', height:'100vh', background:'#0a0a0a', overflow:'hidden' },
+
+  // 사이드바
+  sidebar:      { width:220, minWidth:220, background:'#0d0d0d', borderRight:'1px solid #1a1a1a', display:'flex', flexDirection:'column', overflow:'hidden' },
+  sidebarHeader:{ display:'flex', alignItems:'center', gap:10, padding:'14px 12px', borderBottom:'1px solid #1a1a1a' },
+  newChatBtn:   { margin:'10px 10px 8px', background:'#161616', border:'1px solid #252525', borderRadius:8, padding:'8px 12px', fontSize:12, fontWeight:600, color:'#aaa', cursor:'pointer', fontFamily:'Noto Sans KR, sans-serif', textAlign:'left' },
+  sideFileItem: { display:'flex', alignItems:'center', gap:4, padding:'4px 6px', borderRadius:6, marginBottom:2, background:'#141414', border:'1px solid #1e1e1e' },
+
+  // 채팅 메인
+  chatMain:  { flex:1, display:'flex', flexDirection:'column', overflow:'hidden' },
+  header:    { display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 16px', background:'#0f0f0f', borderBottom:'1px solid #1e1e1e', flexShrink:0 },
   headerLeft:{ display:'flex', alignItems:'center', gap:10 },
-  headerTitle:{ fontSize:14, fontWeight:700, color:'#f0f0f0' },
-  headerSub: { fontSize:10, color:'#555', marginTop:1 },
   headerRight:{ display:'flex', alignItems:'center', gap:8 },
-  logoBox:   { width:32, height:32, background:'#2563ff', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, color:'#fff', flexShrink:0 },
-  modeWrap:  { display:'flex', background:'#181818', borderRadius:8, padding:3, gap:2, border:'1px solid #222' },
-  modeBtn:   { background:'transparent', border:'none', color:'#666', fontSize:12, fontWeight:500, padding:'5px 10px', borderRadius:6, cursor:'pointer', fontFamily:'Noto Sans KR, sans-serif' },
-  modeBtnActive:{ background:'#242424', color:'#e0e0e0', fontWeight:600 },
-  iconBtn:   { background:'#181818', border:'1px solid #222', borderRadius:8, width:32, height:32, cursor:'pointer', color:'#888', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' },
-  histPanel: { background:'#0f0f0f', borderBottom:'1px solid #1e1e1e', padding:'12px 16px', maxHeight:240, overflowY:'auto' },
-  histItem:  { background:'#161616', border:'1px solid #222', borderRadius:8, padding:'8px 12px', marginBottom:6, cursor:'pointer' },
-  msgArea:   { flex:1, overflowY:'auto', padding:'20px 16px', display:'flex', flexDirection:'column', gap:16 },
+  logoBox:   { width:30, height:30, background:'#2563ff', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0 },
+  modeWrap:  { display:'flex', background:'#161616', borderRadius:7, padding:2, gap:2, border:'1px solid #1e1e1e' },
+  modeBtn:   { background:'transparent', border:'none', color:'#555', fontSize:11, fontWeight:500, padding:'4px 8px', borderRadius:5, cursor:'pointer', fontFamily:'Noto Sans KR, sans-serif' },
+  modeBtnActive:{ background:'#202020', color:'#e0e0e0', fontWeight:600 },
+  iconBtn:   { background:'#181818', border:'1px solid #222', borderRadius:7, width:30, height:30, cursor:'pointer', color:'#888', fontSize:13, display:'flex', alignItems:'center', justifyContent:'center' },
+
+  // 메시지
+  msgArea:   { flex:1, overflowY:'auto', padding:'20px 20px', display:'flex', flexDirection:'column', gap:16 },
   msgRow:    { display:'flex', alignItems:'flex-end', gap:8 },
   aiAvatar:  { width:28, height:28, background:'#2563ff', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'#fff', flexShrink:0, marginBottom:2 },
   userAvatar:{ width:28, height:28, background:'#222', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:600, color:'#666', flexShrink:0, marginBottom:2, border:'1px solid #2a2a2a' },
@@ -541,6 +575,8 @@ const S = {
   sourceItem:   { display:'flex', gap:6, alignItems:'baseline', padding:'3px 0', borderBottom:'1px solid #1e2a40' },
   sourceNum:    { fontSize:10, color:'#5a7aaa', flexShrink:0, minWidth:14 },
   sourceLink:   { fontSize:11, color:'#7eb8ff', textDecoration:'none', wordBreak:'break-all', lineHeight:1.5 },
+
+  // 입력
   inputArea: { padding:'10px 16px 16px', background:'#0f0f0f', borderTop:'1px solid #1a1a1a', flexShrink:0 },
   chipRow:   { display:'flex', gap:5, alignItems:'center', marginBottom:6, flexWrap:'wrap' },
   chipLabel: { fontSize:10, color:'#444' },
@@ -548,4 +584,7 @@ const S = {
   inputRow:  { display:'flex', gap:8, alignItems:'flex-end' },
   textarea:  { flex:1, background:'#161616', border:'1px solid #252525', borderRadius:12, color:'#e0e0e0', fontSize:13.5, fontFamily:'Noto Sans KR, sans-serif', padding:'10px 14px', resize:'none', outline:'none', lineHeight:1.6, maxHeight:140, overflowY:'auto' },
   sendBtn:   { width:40, height:40, background:'#2563ff', border:'none', borderRadius:10, cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 },
+
+  // 대화 기록
+  histItem:  { background:'#141414', border:'1px solid #1e1e1e', borderRadius:7, padding:'7px 10px', marginBottom:5, cursor:'pointer' },
 };
