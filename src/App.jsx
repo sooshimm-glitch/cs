@@ -189,7 +189,8 @@ export default function App() {
   const newChat = () => {
     setConvId(null);
     setMessages([{ id: 1, role: 'ai', text: '새 대화를 시작합니다. 질문을 입력해주세요!', sources: [] }]);
-    setShowHistory(false);
+    loadHistory(user.id);
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const loadConv = (conv) => {
@@ -252,7 +253,8 @@ export default function App() {
       const finalMsgs = [...newMsgs, aiMsg];
       setMessages(finalMsgs);
       const newCid = await saveConversation(finalMsgs, convId);
-      if (newCid && !convId) { setConvId(newCid); loadHistory(user.id); }
+      if (newCid && !convId) setConvId(newCid);
+      loadHistory(user.id);
     } catch (err) {
       setMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', text: `오류: ${err.message}`, sources: [], error: true }]);
     } finally { setLoading(false); clearInterval(stepTimer.current); }
